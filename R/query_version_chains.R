@@ -1,4 +1,4 @@
-#' Get version chains of all metadata objects on the Arctic Data Center
+#' Query for version chains of all metadata objects on the Arctic Data Center
 #'
 #' This function takes a data frame of results from `query_objects`, filters for
 #' metadata objects only, then assigns an arbitary series identifier to each
@@ -8,7 +8,7 @@
 #'
 #' @return (data.frame) Metadata objects data.frame with series identifier
 #'
-get_version_chains <- function(objects){
+query_version_chains <- function(objects){
 
     cn <- dataone::CNode("PROD")
     mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
