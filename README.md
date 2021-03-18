@@ -1,16 +1,16 @@
-# arcticreporting
+# arcticreport
 
 - **Authors**: Jeanette Clark, Matthew B. Jones, Bryce Mecum
 - **License**: [Apache 2](http://opensource.org/licenses/Apache-2.0)
-- [Package source code on Github](https://github.com/NCEAS/arcticreporting)
-- [**Submit Bugs and feature requests**](https://github.com/NCEAS/arcticreporting/issues)
+- [Package source code on Github](https://github.com/NCEAS/arcticreport)
+- [**Submit Bugs and feature requests**](https://github.com/NCEAS/arcticreport/issues)
 
 This package generates reporting metrics for the NSF Arctic Data Center.
 
 ## Installation
 
 ```
-remotes::install_github("NCEAS/arcticreporting")
+remotes::install_github("NCEAS/arcticreport")
 ```
 
 
@@ -21,4 +21,3 @@ Work on this package was supported by:
 
 [![nceas_footer](https://live-ncea-ucsb-edu-v01.pantheonsite.io/sites/default/files/2020-03/NCEAS-full%20logo-4C.png)](https://www.nceas.ucsb.edu)
 
-[![dataone_footer](https://www.dataone.org/sites/all/images/DataONE_LOGO.jpg)](https://www.dataone.org)
