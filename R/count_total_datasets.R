@@ -1,4 +1,4 @@
-#' Calculate number of non-obsoleted metadata objects
+#' Count number of non-obsoleted metadata objects
 #'
 #' @param objects (data.frame) Table obtained from `query_objects`
 #' @param from Start date to count over (chatacter or POSIXct)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/count_total_datasets.R
 \name{count_total_datasets}
 \alias{count_total_datasets}
-\title{Calculate number of non-obsoleted metadata objects}
+\title{Count number of non-obsoleted metadata objects}
 \usage{
 count_total_datasets(
   objects,
@@ -21,5 +21,5 @@ count_total_datasets(
 Number of datasets
 }
 \description{
-Calculate number of non-obsoleted metadata objects
+Count number of non-obsoleted metadata objects
 }
