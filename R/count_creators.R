@@ -1,6 +1,6 @@
 #' Count number of unique creators
 #'
-#' @param objects (data.frame) Table obtained from `query_objects`
+#' @param objects (data.frame) Table obtained from `query_version_chains`
 #' @param from Start date to count over (chatacter or POSIXct)
 #' @param to End date to count over (character of POSIXct)
 #'
@@ -19,17 +19,13 @@ count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POS
 
     # calculate number of wide columns to create
     max_len <- origins_df$origin  %>%
-        str_split("\\|") %>%
         lapply(length) %>%
         unlist() %>%
         max()
-    # separate origins into columns
-    suppressWarnings(origins_df <- origins_df %>%
-                         tidyr::separate(.data$origin, sep = "\\|", into = paste0("V", seq(1:max_len))))
-    # move from wide to long
-    origins_long <- origins_df %>%
-        tidyr::pivot_longer(cols = starts_with("V"), names_to = "key", values_to = "origin") %>%
-        dplyr::filter(!is.na(.data$origin))
+    # separate origins into columns and move to long format
+    suppressWarnings(origins_long <- origins_df %>%
+                         tidyr::unnest_longer(.data$origin, values_to = "origin"))
+
     # get initial dates for dataset uploads
     initial_dates <- origins_long %>%
         dplyr::arrange(.data$dateUploaded) %>%

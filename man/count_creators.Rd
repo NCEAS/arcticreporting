@@ -11,7 +11,7 @@ count_creators(
 )
 }
 \arguments{
-\item{objects}{(data.frame) Table obtained from \code{query_objects}}
+\item{objects}{(data.frame) Table obtained from \code{query_version_chains}}
 
 \item{from}{Start date to count over (chatacter or POSIXct)}
 
