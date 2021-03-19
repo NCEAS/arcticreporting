@@ -1,5 +1,6 @@
 #' Count number of new data objects
 #'
+#' @param objects (data.frame) Table obtained from `query_objects`
 #' @param from Start date to count over (chatacter or POSIXct)
 #' @param to End date to count over (character of POSIXct)
 #'

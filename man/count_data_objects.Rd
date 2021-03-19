@@ -11,6 +11,8 @@ count_data_objects(
 )
 }
 \arguments{
+\item{objects}{(data.frame) Table obtained from \code{query_objects}}
+
 \item{from}{Start date to count over (chatacter or POSIXct)}
 
 \item{to}{End date to count over (character of POSIXct)}
