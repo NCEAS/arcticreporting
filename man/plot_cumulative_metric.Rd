@@ -6,6 +6,7 @@
 \usage{
 plot_cumulative_metric(
   objects,
+  type,
   metric,
   from = as.Date("2009-01-01"),
   to = as.Date(Sys.Date()),
@@ -15,7 +16,9 @@ plot_cumulative_metric(
 \arguments{
 \item{objects}{(data.frame) Table obtained from \code{query_objects}}
 
-\item{metric}{(char) one of "files" or "datasets"}
+\item{type}{(char) Object type to aggregate, one of "data" or "metadata"}
+
+\item{metric}{(char) Type of aggregation, one of "count" or "size"}
 
 \item{from}{Start date of plot (chatacter or POSIXct)}
 
