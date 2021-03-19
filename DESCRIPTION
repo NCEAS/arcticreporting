@@ -13,7 +13,8 @@ LazyData: true
 Imports:
     arcticdatautils,
     dataone,
-    dplyr
+    dplyr,
+    tidyr
 Remotes:
     NCEAS/arcticdatautils
 Roxygen: list(markdown = TRUE)
