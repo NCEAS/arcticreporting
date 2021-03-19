@@ -5,7 +5,7 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of datasets
-count_total_datasets <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
+count_new_datasets <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
 
     if (class(from)[1] == "character"){
         from <- as.POSIXct(from)
