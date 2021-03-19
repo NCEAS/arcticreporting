@@ -14,7 +14,11 @@ Imports:
     arcticdatautils,
     dataone,
     dplyr,
+    ggplot2,
+    lubridate,
     rlang,
+    scales,
+    stringr,
     tidyr,
     uuid
 Remotes:
