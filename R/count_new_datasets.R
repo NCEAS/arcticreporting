@@ -5,6 +5,9 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of datasets
+#'
+#' @importFrom dplyr %>%
+#' @importFrom rlang .data
 count_new_datasets <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
 
     if (class(from)[1] == "character"){
@@ -15,7 +18,7 @@ count_new_datasets <- function(objects, from = as.POSIXct("1899-01-01"), to = as
     }
 
     dataset_count <- objects %>%
-        dplyr::filter(formatType == "METADATA") %>%
+        dplyr::filter(.data$formatType == "METADATA") %>%
         dplyr::filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", .data$formatId)) %>%
         dplyr::filter(is.na(.data$obsoletes)) %>%
         dplyr::filter(.data$dateUploaded >= from & .data$dateUploaded <= to)

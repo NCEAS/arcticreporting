@@ -14,7 +14,9 @@ Imports:
     arcticdatautils,
     dataone,
     dplyr,
-    tidyr
+    rlang,
+    tidyr,
+    uuid
 Remotes:
     NCEAS/arcticdatautils
 Roxygen: list(markdown = TRUE)

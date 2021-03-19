@@ -5,6 +5,9 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of creators
+#'
+#' @importFrom dplyr %>%
+#' @importFrom rlang .data
 count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
 
     if (class(from)[1] == "character"){
