@@ -24,7 +24,12 @@ query_version_chains <- function(objects, cache_tolerance = 14){
     }
 
     cfiles <- grep("versions", dir(rappdirs::user_cache_dir("arcticreport"), full.names = TRUE), value = TRUE)
-    cache_age <- Sys.Date() - as.Date(stringr::str_extract(cfiles, "[0-9]{4}-[0-9]{2}-[0-9]{2}"))
+
+    if (length(cfiles) == 0){
+        cache_age <- cache_tolerance # set cache age equal to cache tolerance if no cached files are found
+    } else {
+        cache_age <- Sys.Date() - as.Date(stringr::str_extract(cfiles, "[0-9]{4}-[0-9]{2}-[0-9]{2}"))
+    }
 
     if (cache_age < cache_tolerance){
         meta <- readRDS(file = cfiles)
