@@ -52,7 +52,9 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
         }
 
         # remove old cached file
-        file.remove(cfiles)
+        if (length(cfiles) > 0){
+            file.remove(cfiles)
+        }
         # write new cache
         fpath <- file.path(rappdirs::user_cache_dir("arcticreport"), paste0("objects-", Sys.Date(), ".rds"))
         saveRDS(cd, file = fpath)

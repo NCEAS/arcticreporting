@@ -53,7 +53,10 @@ query_version_chains <- function(objects, cache_tolerance = 14){
         }
 
         # remove old cached file
-        file.remove(cfiles)
+        if (length(cfiles) > 0){
+            file.remove(cfiles)
+        }
+
         # write new cache
         fpath <- file.path(rappdirs::user_cache_dir("arcticreport"), paste0("meta-versions-", Sys.Date(), ".rds"))
         saveRDS(meta, file = fpath)
