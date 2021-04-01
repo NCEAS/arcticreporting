@@ -4,10 +4,15 @@
 \alias{query_version_chains}
 \title{Query for version chains of all metadata objects on the Arctic Data Center}
 \usage{
-query_version_chains(objects)
+query_version_chains(objects, cache_tolerance = 14)
 }
 \arguments{
 \item{objects}{(data.frame) Result from \code{query_objects}}
+
+\item{cache_tolerance}{(integer) Maximum number of days tolerable for age of
+cached results. If the cached results are older than the cache tolerance, a
+new dataset will be cached and the old cache deleted. To force a cache
+refresh, set tolerance to zero.}
 }
 \value{
 (data.frame) Metadata objects data.frame with series identifier
