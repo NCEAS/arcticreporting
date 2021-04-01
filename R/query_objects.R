@@ -16,7 +16,7 @@ query_objects <- function(n = 1000000){
     mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 
     if (is.null(D1TOKEN)) {
-        warning('No token set')
+        stop('No token set')
     }
 
     cd <- dataone::query(mn, list(q = '*:*',
