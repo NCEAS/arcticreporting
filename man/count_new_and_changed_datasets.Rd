@@ -11,7 +11,7 @@ count_new_and_changed_datasets(
 )
 }
 \arguments{
-\item{objects}{(data.frame) Table obtained from \code{query_version_chains}}
+\item{objects}{(data.frame) Table obtained from \code{query_objects}}
 
 \item{from}{Start date to count over (chatacter or POSIXct)}
 
