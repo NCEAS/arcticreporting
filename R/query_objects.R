@@ -12,6 +12,7 @@
 #' refresh, set tolerance to zero.
 #'
 #' @return (data.frame) Result of the SOLR query
+#' @export
 #'
 query_objects <- function(n = 1000000, cache_tolerance = 14){
 

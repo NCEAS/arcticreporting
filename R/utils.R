@@ -4,5 +4,6 @@
 #'
 #'
 #' @return (list) A list of files
+#' @export
 #'
 arcticreport_cache <- function() dir(rappdirs::user_cache_dir("arcticreport"), full.names = T)

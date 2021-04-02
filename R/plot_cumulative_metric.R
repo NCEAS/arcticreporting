@@ -8,6 +8,7 @@
 #' @param ... additional arguments to `plot_theme_adc`
 #'
 #' @return Plot of total datasets
+#' @export
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data

@@ -5,6 +5,7 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of creators
+#' @export
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data

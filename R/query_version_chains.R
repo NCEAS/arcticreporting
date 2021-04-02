@@ -11,6 +11,7 @@
 #' refresh, set tolerance to zero.
 #'
 #' @return (data.frame) Metadata objects data.frame with series identifier
+#' @export
 #'
 query_version_chains <- function(objects, cache_tolerance = 14){
 

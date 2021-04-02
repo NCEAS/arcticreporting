@@ -5,6 +5,7 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of new and changed datasets
+#' @export
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
