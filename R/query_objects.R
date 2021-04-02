@@ -52,6 +52,25 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
             stop("Solr query for this plot returned its maximum number of rows. Resutls may be truncated. You'll need to adjust the Solr query or this code to make sure results aren't truncated.")
         }
 
+        meta <- cd[grep("informatics|gmd|xml", cd$formatId), ]
+
+        unobsoleted <- meta[which(is.na(meta$obsoletedBy)), ]
+
+        meta_end <- unobsoleted$id
+
+        meta$seriesId <- NA
+        for (i in 1:length(meta_end)){
+            all_vers <- arcticdatautils::get_all_versions(mn, meta_end[i])
+            z <- which(meta$id %in% all_vers)
+            meta$seriesId[z] <- uuid::UUIDgenerate(n = 1)
+            rm(z)
+        }
+
+        meta <- dplyr::select(meta, id, seriesId)
+
+        cd <- dplyr::left_join(cd, meta, by = "id")
+
+
         # remove old cached file
         if (length(cfiles) > 0){
             file.remove(cfiles)
