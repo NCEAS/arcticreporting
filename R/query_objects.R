@@ -14,6 +14,7 @@
 #' @return (data.frame) Result of the SOLR query
 #' @export
 #'
+#' @importFrom rlang .data
 query_objects <- function(n = 1000000, cache_tolerance = 14){
 
     # check for token
@@ -66,7 +67,7 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
             rm(z)
         }
 
-        meta <- dplyr::select(meta, id, seriesId)
+        meta <- dplyr::select(meta, .data$id, .data$seriesId)
 
         cd <- dplyr::left_join(cd, meta, by = "id")
 
