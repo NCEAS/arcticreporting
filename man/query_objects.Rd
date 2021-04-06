@@ -4,10 +4,15 @@
 \alias{query_objects}
 \title{Return key information on all objects on the Arctic Data Center}
 \usage{
-query_objects(n = 1e+06)
+query_objects(n = 1e+06, cache_tolerance = 14)
 }
 \arguments{
 \item{n}{(integer) Number of rows to return}
+
+\item{cache_tolerance}{(integer) Maximum number of days tolerable for age of
+cached results. If the cached results are older than the cache tolerance, a
+new dataset will be cached and the old cache deleted. To force a cache
+refresh, set tolerance to zero.}
 }
 \value{
 (data.frame) Result of the SOLR query

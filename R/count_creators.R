@@ -1,13 +1,15 @@
 #' Count number of unique creators
 #'
-#' @param objects (data.frame) Table obtained from `query_version_chains`
+#' @param objects (data.frame) Table obtained from `query_objects`
 #' @param from Start date to count over (chatacter or POSIXct)
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of creators
+#' @export
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
+#' @import data.table
 count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
 
     if (class(from)[1] == "character"){
@@ -25,9 +27,22 @@ count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POS
         lapply(length) %>%
         unlist() %>%
         max()
+    # set env vars to NULL for R CMD check
+    origin <- id <- formatId <- formatType <- size <- obsoletes <- dateUploaded <- obsoletedBy <- seriesId <- NULL
     # separate origins into columns and move to long format
-    suppressWarnings(origins_long <- origins_df %>%
-                         tidyr::unnest_longer(.data$origin, values_to = "origin"))
+    origins_df <- data.table::as.data.table(origins_df)
+    origins_long <- origins_df[,
+                               list(origin = as.character(unlist(origin))),
+                               by = list(id,
+                                    formatId,
+                                    formatType,
+                                    size,
+                                    obsoletes,
+                                    dateUploaded,
+                                    obsoletedBy,
+                                    seriesId)]
+
+
 
     # get initial dates for dataset uploads
     initial_dates <- origins_long %>%
@@ -43,51 +58,15 @@ count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POS
 
 
     # Grep-based filters
-    # Bryce created these (and we can expand these) based upon what I saw in the results
-    # that looked like organizations or non-persons of some sort or another
-    omit <- c("UCAR/NCAR",
-              "University",
-              "Institute",
-              "Ynknown",
-              "Transfer Unit",
-              "Dept.",
-              "NSF Arctic Data Center",
-              "Coast Guard",
-              "ACADIS",
-              "Chesapeake Biological Laboratory",
-              "Technologies",
-              "Department",
-              "Research Center",
-              "Institution",
-              "0214",
-              "UCSD/SIO",
-              "Technology",
-              "LLC",
-              "NCAR/EOL",
-              "Data and Software Facility (CDS)",
-              "Anthropology",
-              "LGL",
-              "National Resources Constulatants Inc",
-              "Inc",
-              "USGS Alaska",
-              "Hydrology/Ecology",
-              "Evolution & Marine Biology",
-              "Ecology",
+    # non-persons of some sort or another, found by scanning the list of unique creators
+    omit <- c(".",
+              "marine biologist",
+              "Unknown",
               "Department of Biology",
-              "PAOS/CIRES",
-              "Hydrology",
-              "National Weather Service (NWS)",
-              "Laboratory",
-              "Hydrology",
-              "Service",
-              "Science",
-              "Research",
-              "Mathematics",
-              "Center",
-              "Administration",
-              "Berkeley",
-              "Museum",
-              "U. S. Fish & Wildlife Service")
+              "hostdominic mullen")
+
+
+
     # filter out the omit list and grab the datasets by new creators for the date of interest
     origins_final <- origins_new %>%
         dplyr::filter(!(.data$origin %in% tolower(omit))) %>%

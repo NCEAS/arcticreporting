@@ -1,6 +1,7 @@
 #' Theme function for plots
 #'
 #' @param font_size (integer) Base size for font
+#' @export
 #'
 #' @return ggplot theme object
 #' @import ggplot2

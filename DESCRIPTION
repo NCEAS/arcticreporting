@@ -13,9 +13,11 @@ LazyData: true
 Imports:
     arcticdatautils,
     dataone,
+    data.table,
     dplyr,
     ggplot2,
     lubridate,
+    rappdirs,
     rlang,
     scales,
     stringr,
@@ -26,5 +28,10 @@ Remotes:
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Suggests: 
+    rmarkdown,
+    knitr,
+    purrr,
+    readr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr
