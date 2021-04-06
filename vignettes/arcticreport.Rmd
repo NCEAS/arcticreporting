@@ -1,0 +1,50 @@
+---
+title: "arcticreport"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{arcticreport}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message = FALSE}
+library(arcticreport)
+library(readr)
+library(purrr)
+library(DT)
+```
+
+```{r, message = FALSE}
+quarters_file <- system.file("extdata", "quarters.csv", package="arcticreport")
+quarters <- read_csv(quarters_file, progress = FALSE)
+
+objs <- query_objects()
+```
+
+```{r}
+quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
+quarters$new_changed_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_and_changed_datasets, objects = objs)
+quarters$new_objects <- map2_chr(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
+quarters$unique_creators <- map2_chr(quarters$from, quarters$to, .f = count_creators, objects = objs)
+```
+
+```{r}
+datatable(quarters)
+```
+
+```{r}
+plot_cumulative_metric(objs, type = "metadata", metric = "count")
+```
+
+
+```{r}
+plot_cumulative_metric(objs, type = "data", metric = "size")
+```
+
