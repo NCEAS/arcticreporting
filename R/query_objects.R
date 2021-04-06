@@ -17,13 +17,6 @@
 #' @importFrom rlang .data
 query_objects <- function(n = 1000000, cache_tolerance = 14){
 
-    # check for token
-    D1TOKEN <- getOption("dataone_token")
-
-    if (is.null(D1TOKEN)) {
-        stop('No token set')
-    }
-
     # set up cache
     if (!(dir.exists(rappdirs::user_cache_dir("arcticreport")))){
         dir.create(rappdirs::user_cache_dir("arcticreport"))
@@ -40,6 +33,14 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
     if (cache_age < cache_tolerance){
         cd <- readRDS(file = cfiles)
     } else if (cache_age >= cache_tolerance) {
+
+        # check for token
+        D1TOKEN <- getOption("dataone_token")
+
+        if (is.null(D1TOKEN)) {
+            stop('No token set')
+        }
+
         cn <- dataone::CNode("PROD")
         mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 
