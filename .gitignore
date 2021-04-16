@@ -5,3 +5,5 @@
 *.Rproj
 /temp_content/*
 inst/doc
+doc
+Meta
