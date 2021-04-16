@@ -62,7 +62,7 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
 
         meta$seriesId <- NA
         for (i in 1:length(meta_end)){
-            all_vers <- arcticdatautils::get_all_versions(mn, meta_end[i])
+            all_vers <- get_all_versions(mn, meta_end[i])
             z <- which(meta$id %in% all_vers)
             meta$seriesId[z] <- uuid::UUIDgenerate(n = 1)
             rm(z)
