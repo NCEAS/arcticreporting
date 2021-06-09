@@ -17,6 +17,7 @@ arcticreport_cache <- function() dir(rappdirs::user_cache_dir("arcticreport"), f
 #' @param pid (character) Any object in the chain.
 #'
 #' @return (character) A vector of PIDs in the chain, in order.
+#' @importFrom dataone getSystemMetadata
 #'
 #' @export
 #'
@@ -40,7 +41,8 @@ get_all_versions <- function(node, pid) {
 
     while (!is.na(sm@obsoletes)) {
         oldsm <- sm # Save a copy for better warning messages
-        sm <- getSystemMetadata(node, sm@obsoletes)
+        tryCatch(sm <- getSystemMetadata(node, sm@obsoletes),
+                 error = function(x){sm <- NULL})
 
         if (is.null(sm)) {
             warning(call. = FALSE,
