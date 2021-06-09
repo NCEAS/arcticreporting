@@ -33,6 +33,7 @@ quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_dat
 quarters$new_changed_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_and_changed_datasets, objects = objs)
 quarters$new_objects <- map2_chr(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
 quarters$unique_creators <- map2_chr(quarters$from, quarters$to, .f = count_creators, objects = objs)
+quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
 ```
 
 ```{r}
@@ -41,6 +42,10 @@ datatable(quarters)
 
 ```{r}
 plot_cumulative_metric(objs, type = "metadata", metric = "count")
+```
+
+```{r}
+plot_cumulative_metric(objs, type = "data", metric = "count")
 ```
 
 
