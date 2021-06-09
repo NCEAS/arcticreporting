@@ -46,7 +46,6 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
 
         cd <- dataone::query(mn, list(q = '*:*',
                                       fl = 'id,formatType,dateUploaded,obsoletes,obsoletedBy,formatId,origin,size',
-                                      sort = 'dateUploaded+desc',
                                       rows = as.integer(n)),
                              as = "data.frame")
 
