@@ -34,6 +34,7 @@ quarters$new_changed_datasets <- map2_chr(quarters$from, quarters$to, .f = count
 quarters$new_objects <- map2_chr(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
 quarters$unique_creators <- map2_chr(quarters$from, quarters$to, .f = count_creators, objects = objs)
 quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
+quarters$citations <- map2_chr(quarters$from, quarters$to, .f = count_citations)
 ```
 
 ```{r}
