@@ -17,6 +17,7 @@ Imports:
     ggplot2,
     lubridate,
     rappdirs,
+    readr,
     rlang,
     scales,
     stringr,
