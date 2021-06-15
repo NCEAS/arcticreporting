@@ -19,13 +19,16 @@ library(arcticreport)
 library(readr)
 library(purrr)
 library(DT)
+library(dplyr)
+library(tidyr)
 ```
 
 ```{r, message = FALSE}
-quarters_file <- system.file("extdata", "quarters.csv", package="arcticreport")
+devtools::load_all()
+quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
 
-objs <- query_objects()
+objs <- query_objects(cache_tolerance = 10000)
 ```
 
 ```{r}
@@ -53,4 +56,57 @@ plot_cumulative_metric(objs, type = "data", metric = "count")
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "size")
 ```
+
+```{r}
+
+ss <- "https://docs.google.com/spreadsheets/d/1S_7iW0UBZLZoJBrHXTW5fbHH-NOuOb6xLghraPA4Kf4/edit#gid=1479370118"
+
+dat <- suppressMessages(googlesheets4::read_sheet(ss, sheet = "dataset_categorization", col_types = "c")) %>% 
+  mutate(dateUploaded = as.POSIXct(dateUploaded))
+```
+
+```{r}
+
+qt <- quarters %>% 
+  dplyr::filter(period %in% grep("q", quarters$period, value = T)) # filter for quarters of interest
+
+themes <- map2(qt$from, qt$to, .f = count_datasets_theme, theme_data = dat)
+
+for (i in 1:length(themes)){
+  themes[[i]]$quarter <- qt$period[[i]]
+}
+
+themes <- do.call(dplyr::bind_rows, themes) %>% 
+  tidyr::pivot_longer(-c(quarter), names_to = "theme", values_to = "n") %>% 
+  tidyr::pivot_wider(names_from = quarter, values_from = n, values_fill = 0)
+
+
+themes$theme <- factor(themes$theme, levels = c("geology/geophysics",
+                                                "soil science",
+                                                "permafrost",
+                                                "glaciology",
+                                                "ice cores",
+                                                "paleontology/paleoecology",
+                                                "biology",
+                                                "ecology",
+                                                "fisheries",
+                                                "limnology/hydrology",
+                                                "ice/snow cover",
+                                                "oceanography",
+                                                "atmosphere",
+                                                "climate",
+                                                "model output",
+                                                "aerial imagery/basemaps",
+                                                "anthropology",
+                                                "archaeology",
+                                                "environmental management",
+                                                "economics",
+                                                "political science",
+                                                "cyberinfrastructure"))
+
+themes <- arrange(themes, theme)
+
+datatable(themes)
+```
+
 
