@@ -28,13 +28,14 @@ devtools::load_all()
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
 
-objs <- query_objects(cache_tolerance = 10000)
+objs <- query_objects(cache_tolerance = 0)
 ```
 
 ```{r}
 quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
 quarters$new_changed_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_and_changed_datasets, objects = objs)
 quarters$new_objects <- map2_chr(quarters$from, quarters$to, .f = count_data_objects, objects = objs)
+quarters$volume <- map2_chr(quarters$from, quarters$to, .f = count_volume, objects = objs)
 quarters$unique_creators <- map2_chr(quarters$from, quarters$to, .f = count_creators, objects = objs)
 quarters$downloads <- map2_chr(quarters$from, quarters$to, .f = count_downloads)
 quarters$citations <- map2_chr(quarters$from, quarters$to, .f = count_citations)
@@ -68,7 +69,7 @@ dat <- suppressMessages(googlesheets4::read_sheet(ss, sheet = "dataset_categoriz
 ```{r}
 
 qt <- quarters %>% 
-  dplyr::filter(period %in% grep("q", quarters$period, value = T)) # filter for quarters of interest
+  dplyr::filter(period %in% grep("q1", quarters$period, value = T)) # filter for quarters of interest
 
 themes <- map2(qt$from, qt$to, .f = count_datasets_theme, theme_data = dat)
 
@@ -104,9 +105,9 @@ themes$theme <- factor(themes$theme, levels = c("geology/geophysics",
                                                 "political science",
                                                 "cyberinfrastructure"))
 
-themes <- arrange(themes, theme)
+themes <- arrange(themes, -y6q1)
 
-datatable(themes)
+datatable(themes, options = list(pageLength = 15), rownames = F, height = 3000)
 ```
 
 
