@@ -15,7 +15,9 @@
 #' @export
 #'
 #' @importFrom rlang .data
-query_objects <- function(n = 1000000, cache_tolerance = 14){
+query_objects <- function(n = 10000000, cache_tolerance = 14){
+
+    options(scipen = 100)
 
     # set up cache
     if (!(dir.exists(rappdirs::user_cache_dir("arcticreport")))){
@@ -44,15 +46,20 @@ query_objects <- function(n = 1000000, cache_tolerance = 14){
         cn <- dataone::CNode("PROD")
         mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 
-        cd <- dataone::query(mn, list(q = '*:*',
-                                      fl = 'id,formatType,dateUploaded,obsoletes,obsoletedBy,formatId,origin,size',
-                                      sort = 'dateUploaded+desc',
-                                      rows = as.integer(n)),
-                             as = "data.frame")
 
-        if (nrow(cd) >= 1000000) {
-            stop("Solr query for this plot returned its maximum number of rows. Resutls may be truncated. You'll need to adjust the Solr query or this code to make sure results aren't truncated.")
+        cd <- data.frame()
+        for (i in seq(0, n-1000, 1000)){
+            res <- dataone::query(mn, list(q = '*:*',
+                                          fl = 'id,formatType,dateUploaded,obsoletes,obsoletedBy,formatId,origin,size',
+                                          sort = 'dateUploaded+desc',
+                                          rows = 1000,
+                                          start = i),
+                                 as = "data.frame")
+            cd <- dplyr::bind_rows(cd, res)
         }
+
+        cd <- dplyr::filter(cd, !is.na(.data$id))
+
 
         meta <- cd[grep("informatics|gmd|xml", cd$formatId), ]
 
