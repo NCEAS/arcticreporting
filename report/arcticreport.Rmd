@@ -15,21 +15,69 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, message = FALSE}
-library(arcticreport)
+#library(arcticreport)
+library(EML)
+library(dataone)
 library(readr)
 library(purrr)
 library(DT)
 library(dplyr)
 library(tidyr)
+library(jsonlite)
+library(rt)
 ```
 
 ```{r, message = FALSE}
 devtools::load_all()
+Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
+rt_login()
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
 
-objs <- query_objects(cache_tolerance = 0)
+objs <- query_objects(cache_tolerance = 30)
 ```
+
+Add info from the server from `/var/data` dir using `du -csh --block-size=1K *` and `ls -l`
+
+```{r}
+size_info <- tribble(~size_kb, ~id,
+                     1540,	'A24Q7QR39',
+                     4011719360,	'A28911S0V',
+                     1632101256,	'A2CV4BS5K',
+                     1364929160,	'A2G73751P',
+                     19814756,	'A2G737525',
+                     3500608,	'A2H70820F',
+                     687345560,	'A2JQ0SW5Z',
+                     58359088,	'A2QF8JK7T',
+                     3615792,	'A2QJ78024',
+                     103868388,	'A2RV0D21Z',
+                     572554340,	'A2W08WH8M',
+                     26485556,	'A2ZG6G81T')
+
+date_info <- tribble(~date, ~id,
+                     '2022-01-26 10:39', 'A24Q7QR39',
+                     '2021-10-13 13:28', 'A28911S0V',
+                     '2021-02-11 15:53', 'A2CV4BS5K',
+                     '2022-01-18 12:45', 'A2G73751P',
+                     '2022-02-03 17:50', 'A2G737525',
+                     '2022-01-11 10:18', 'A2H70820F',
+                     '2022-03-14 11:34', 'A2JQ0SW5Z',
+                     '2021-09-24 17:40', 'A2QF8JK7T',
+                     '2022-02-03 12:22', 'A2QJ78024',
+                     '2021-11-30 15:08', 'A2RV0D21Z',
+                     '2022-03-15 15:47', 'A2W08WH8M',
+                     '2021-09-03 16:29', 'A2ZG6G81T')
+
+datasets_add <- left_join(size_info, date_info) %>% 
+    mutate(size = size_kb*1024) %>% 
+    mutate(dateUploaded = as.Date(date)) %>% 
+    mutate(formatType = "DATA") %>% 
+    select(-size_kb,-date)
+
+objs <- bind_rows(objs, datasets_add)
+```
+
+
 
 ```{r}
 quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
@@ -46,68 +94,242 @@ datatable(quarters)
 ```
 
 ```{r}
-plot_cumulative_metric(objs, type = "metadata", metric = "count")
+plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
+    annotate("rect",
+             xmin = as.Date("2022-02-01"),
+             xmax = as.Date("2022-04-30"),
+             ymin = 2500,
+             ymax = 7000,
+             fill = "gray",
+             alpha = 0.4)+
+    xlim(c(as.Date("2016-03-01"), as.Date("2022-04-30")))
+
+ggsave("~/datasets.png", height = 4, width = 5)
 ```
 
 ```{r}
-plot_cumulative_metric(objs, type = "data", metric = "count")
+plot_cumulative_metric(objs, type = "data", metric = "count")  +
+    annotate("rect",
+             xmin = as.Date("2022-02-01"),
+             xmax = as.Date("2022-04-30"),
+             ymin = 450000,
+             ymax = 1000000,
+             fill = "gray",
+             alpha = 0.4)+
+    xlim(c(as.Date("2016-03-01"), as.Date("2022-04-30")))
+
+ggsave("~/objs.png", height = 4, width = 5)
 ```
 
 
 ```{r}
-plot_cumulative_metric(objs, type = "data", metric = "size")
+plot_cumulative_metric(objs, type = "data", metric = "size") +
+    annotate("rect",
+             xmin = as.Date("2021-11-01"),
+             xmax = as.Date("2022-01-31"),
+             ymin = 0,
+             ymax = 73,
+             fill = "gray",
+             alpha = 0.4)+
+    xlim(c(as.Date("2016-03-01"), as.Date("2022-01-31")))
+
+ggsave("~/size.png", height = 4, width = 5)
 ```
 
-```{r}
 
-ss <- "https://docs.google.com/spreadsheets/d/1S_7iW0UBZLZoJBrHXTW5fbHH-NOuOb6xLghraPA4Kf4/edit#gid=1479370118"
 
-dat <- suppressMessages(googlesheets4::read_sheet(ss, sheet = "dataset_categorization", col_types = "c")) %>% 
-  mutate(dateUploaded = as.POSIXct(dateUploaded))
-```
+
+# Programs
 
 ```{r}
+mn <- getMNode(CNode("PROD"), "urn:node:ARCTIC")
 
-qt <- quarters %>% 
-  dplyr::filter(period %in% grep("q1", quarters$period, value = T)) # filter for quarters of interest
 
-themes <- map2(qt$from, qt$to, .f = count_datasets_theme, theme_data = dat)
+m_q <- objs %>% 
+    filter(formatType == "METADATA") %>% 
+    filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
+    filter(is.na(obsoletes)) %>%
+    filter(dateUploaded >= quarters$from[4] & dateUploaded <= quarters$to[4])
 
-for (i in 1:length(themes)){
-  themes[[i]]$quarter <- qt$period[[i]]
+get_latest_version <- function(mn, pid){
+    ids <- get_all_versions(mn, pid)
+    return(ids[length(ids)])
 }
 
-themes <- do.call(dplyr::bind_rows, themes) %>% 
-  tidyr::pivot_longer(-c(quarter), names_to = "theme", values_to = "n") %>% 
-  tidyr::pivot_wider(names_from = quarter, values_from = n, values_fill = 0)
+m_q$latest <- lapply(m_q$id, get_latest_version, mn = mn)
+m_q$latest <- unlist(m_q$latest)
+
+res <- c()
+for (i in seq_along(m_q$latest)){
+    
+    doc <- read_eml(getObject(mn, m_q$latest[i]))
+    if (!is.null(doc$dataset$project)){
+        m_q$funding[i] <- paste(arcticdatautils::eml_get_simple(doc, "awardNumber"), collapse = ";")
+    }
+        else {
+             m_q$funding[i] <- NA
+        }
+    
+}
+
+funding <- m_q %>% 
+    select(id, dateUploaded, funding) %>% 
+    separate(funding, paste("funding", 1:5, sep="_"), sep=";", extra="drop") %>% 
+    pivot_longer(cols = starts_with("funding"), names_to = "h", values_to = "funding") %>% 
+    select(-h) %>% 
+    filter(!is.na(funding) & funding != "") %>% 
+    filter(nchar(funding) == 7)
+
+for (i in 1:nrow(funding)){
+    url <- paste0("https://api.nsf.gov/services/v1/awards.json?id=",funding$funding[i],"&printFields=fundProgramName")
+
+    t <- fromJSON(url)
+    if (!is.null(t$response$award$fundProgramName)){
+        funding$programName[i] <- t$response$award$fundProgramName
+    }
+    else {funding$programName[i] <- "unknown"}
+}    
 
 
-themes$theme <- factor(themes$theme, levels = c("geology/geophysics",
-                                                "soil science",
-                                                "permafrost",
-                                                "glaciology",
-                                                "ice cores",
-                                                "paleontology/paleoecology",
-                                                "biology",
-                                                "ecology",
-                                                "fisheries",
-                                                "limnology/hydrology",
-                                                "ice/snow cover",
-                                                "oceanography",
-                                                "atmosphere",
-                                                "climate",
-                                                "model output",
-                                                "aerial imagery/basemaps",
-                                                "anthropology",
-                                                "archaeology",
-                                                "environmental management",
-                                                "economics",
-                                                "political science",
-                                                "cyberinfrastructure"))
 
-themes <- arrange(themes, -y6q1)
-
-datatable(themes, options = list(pageLength = 15), rownames = F, height = 3000)
 ```
 
+```{r}
+q4 <- funding %>% 
+    filter(dateUploaded >= as.POSIXct("2021-2-01") & dateUploaded <= as.POSIXct("2022-04-30")) %>% 
+    group_by(programName) %>% 
+    summarise(n = n())
+
+DT::datatable(q4, rownames = F)
+```
+
+
+```{r}
+
+rr <- c()
+rr <- lapply(m_q$id, function(x){
+    vers <- get_all_versions(mn, x)
+    return(vers[length(vers)])
+})
+
+
+res <- c()
+for (i in 1:length(rr)){
+    res[[i]] <- dataone::query(mn, list(q = paste0('id:"', rr[[i]], '"'),
+                                          fl = 'id,title,sem_annotation',
+                                          sort = 'dateUploaded+desc',
+                                          rows = 1000),
+                                 as = "data.frame")
+}
+
+res <- do.call(bind_rows, res) %>% 
+    mutate(url = paste0("https://arcticdata.io/catalog/view/", id))
+
+adc_disc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
+    mutate(an_uri = paste0("https://purl.dataone.org/odo/ADCAD_", stringr::str_pad(id, 5, "left", pad = "0")))
+
+res$category <- map(res$sem_annotation, function(x){
+    t <- grep("*ADCAD*", x, value = TRUE)
+    cats <- c()
+    for (i in 1:length(t)){
+        z <- which(adc_disc$an_uri == t[i])
+        cats[i] <- adc_disc$discipline[z]
+        
+    }
+    return(cats)
+})
+
+res_wide <- res %>% 
+    unnest_wider(category, names_sep = "category") %>% 
+    select(-sem_annotation)
+
+
+
+
+write.csv(res_wide, "~/to_cat.csv", row.names = F)
+
+
+cat <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1L-YGFwQARMaVSajUJKc_PxfJCSs0dvA4ghk6iUkvHRA/edit#gid=1448338666", na = c("", " ", "NA")) %>% 
+    filter(grepl("Q4", dateUploaded)) %>% 
+    pivot_longer(cols = starts_with("category"), names_to = "names", values_to = "category") %>% 
+    drop_na() %>% 
+    select(-names) %>% 
+    group_by(dateUploaded, category) %>% 
+    summarise(n = n()) %>% 
+    pivot_wider(names_from = dateUploaded, values_from = n)
+
+write.csv(cat, "~/cat_final.csv")
+```
+
+
+### RT
+
+```{r, echo=FALSE, warning=FALSE}
+Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
+rt_login()
+```
+
+```{r}
+
+tickets_result <- rt_ticket_search("Queue='arcticdata'",
+                         orderby = "+Created",
+                         format = "l",
+                         fields = "id,Created,Resolved,LastUpdated,Status")
+tickets <- tickets_result # Copy so we don't have to re-run query when debugging
+tickets$Status <- ordered(tickets$Status, c("rejected", "new", "open", "stalled", "resolved"))
+
+# Make all datetime fields actual datetimes
+parse_rt_datetime_pst <- function(x) {
+  parse_date_time(x, 
+                  orders = c("a b d H:M:S Y", # RT default
+                             "Y-m-d H:M:S"),       # My customized form
+                  tz = "America/Los_Angeles")
+}
+
+tickets <- tickets %>% 
+  mutate(Created = parse_rt_datetime_pst(Created),
+         Resolved = parse_rt_datetime_pst(Resolved),
+         LastUpdated = parse_rt_datetime_pst(LastUpdated)) %>% 
+  mutate(id = str_replace(id, "ticket/", "")) %>% 
+  mutate(DaysOpen = round(as.numeric(now() - Created, units = "days")),
+         DaysSinceLastUpdated = round(as.numeric(now() - LastUpdated, units = "days")))
+
+# Add in friendlier datetime fields mirroring the normal ones
+nice_format <- "%Y/%m/%d %H:%M"
+
+tickets <- tickets %>% 
+  mutate(Created_nice = format(Created, nice_format),
+         Resolved_nice = format(Resolved, nice_format),
+         LastUpdated_nice = format(LastUpdated, nice_format))
+
+
+tot <- tickets %>% 
+  select(id, Created, Resolved) %>% 
+  gather(status, datetime, -id, na.rm = TRUE)
+
+names(tot) <- c("id", "status", "datetime")
+
+tot <- tot %>%
+  group_by(status) %>% 
+  arrange(datetime) %>% 
+  mutate(count = 1, ccount = cumsum(count)) %>% 
+  mutate(date = date(datetime))
+
+
+ggplot(tot, aes(datetime, ccount, color = status)) + 
+  geom_step() +
+  labs(title = "Cumulative Tickets Created & Resolved Over Time", x = "Date", y = "Number of Tickets") +
+  annotate("rect",
+           xmin = ymd_hms("2021-08-01 00:00:00"),
+           xmax = ymd_hms("2021-10-31 00:00:00"),
+           ymin = 0,
+           ymax = 1600,
+           fill = "gray",
+           alpha = 0.4) +
+  xlim(c(ymd_hms("2016-03-01 00:00:00"), ymd_hms("2021-10-31 00:00:00"))) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+ggsave("~/tix.png", height = 4, width = 5)
+```
 
