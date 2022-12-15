@@ -127,6 +127,10 @@ quarters$support_interactions <- map2_chr(quarters$from, quarters$to, .f = count
 datatable(quarters)
 ```
 
+
+
+
+
 ```{r}
 plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
     annotate("rect",
@@ -176,23 +180,35 @@ ggsave("~/size_q1.png", height = 4, width = 5)
 # Programs
 
 ```{r}
-mn <- getMNode(CNode("PROD"), "urn:node:ARCTIC")
-
-
-m_q <- objs %>% 
-    filter(formatType == "METADATA") %>% 
-    filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
-    filter(is.na(obsoletes)) %>%
-    filter(dateUploaded >= quarters$from[6] & dateUploaded <= quarters$to[6])
+# set up time period
+from <- quarters$from[6]
+to <- quarters$to[6]
 
 get_latest_version <- function(mn, pid){
     ids <- get_all_versions(mn, pid)
     return(ids[length(ids)])
 }
+```
 
+
+```{r}
+count_unique_accessors("~/access_log", from, to)
+```
+
+```{r}
+mn <- getMNode(CNode("PROD"), "urn:node:ARCTIC")
+
+# filter down the list of metadata docs during the time period
+m_q <- objs %>% 
+    filter(formatType == "METADATA") %>% 
+    filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
+    filter(is.na(obsoletes)) %>%
+    filter(dateUploaded >= from & dateUploaded <= to)
+
+# get the most recent version (early versions might not have a valid funding number)
 m_q$latest <- lapply(m_q$id, get_latest_version, mn = mn)
 m_q$latest <- unlist(m_q$latest)
-
+# extract award numbers
 res <- c()
 for (i in seq_along(m_q$latest)){
     
@@ -205,7 +221,7 @@ for (i in seq_along(m_q$latest)){
         }
     
 }
-
+# clean up awards
 funding <- m_q %>% 
     select(id, dateUploaded, funding) %>% 
     separate(funding, paste("funding", 1:5, sep="_"), sep=";", extra="drop") %>% 
@@ -213,7 +229,7 @@ funding <- m_q %>%
     select(-h) %>% 
     filter(!is.na(funding) & funding != "") %>% 
     filter(nchar(funding) == 7)
-
+# extract program names
 for (i in 1:nrow(funding)){
     url <- paste0("https://api.nsf.gov/services/v1/awards.json?id=",funding$funding[i],"&printFields=fundProgramName")
 
@@ -223,48 +239,22 @@ for (i in 1:nrow(funding)){
     }
     else {funding$programName[i] <- "unknown"}
 }    
-
-
-
 ```
 
 ```{r}
 q1 <- funding %>% 
-    filter(dateUploaded >= as.POSIXct("2022-05-01") & dateUploaded <= as.POSIXct("2022-07-31")) %>% 
     group_by(programName) %>% 
     summarise(n = n())
 
 DT::datatable(q1, rownames = F)
 ```
 
-```{r}
-#q2 <- funding %>% 
-#    filter(dateUploaded >= as.POSIXct("2022-08-01") & dateUploaded <= as.POSIXct("2022-10-31")) %>% 
-#    group_by(programName) %>% 
-#    summarise(n = n())
-
-DT::datatable(q2, rownames = F)
-```
+## Disciplines
 
 ```{r}
-
-mn <- getMNode(CNode("PROD"), "urn:node:ARCTIC")
-
-m_q <- objs %>% 
-    filter(formatType == "METADATA") %>% 
-    filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
-    filter(is.na(obsoletes)) %>% 
-    filter(dateUploaded >= quarters$from[6] & dateUploaded <= quarters$to[7]) %>% 
-    mutate(quarter = ifelse(dateUploaded > as.Date(quarters$from[7]), 2, 1))
-
-m_q$vers <- NA
-for (i in 1:nrow(m_q)){
-    v <- get_all_versions(mn, m_q$id[i])
-    m_q$vers[i] <- v[length(v)]
-}
 res <- list()
 for (i in 1:nrow(m_q)){
-    q <- dataone::query(mn, list(q = paste0('id:"', m_q$vers[[i]], '"'),
+    q <- dataone::query(mn, list(q = paste0('id:"', m_q$latest[i], '"'),
                                           fl = 'id,sem_annotation',
                                           sort = 'dateUploaded+desc',
                                           rows = 1000),
@@ -272,7 +262,7 @@ for (i in 1:nrow(m_q)){
     
     if (nrow(q) > 0){
         q <- q %>% 
-            rename(vers = id)
+            rename(latest = id)
     } else{
         q <- data.frame(id = m_q$vers[i], sem_annotation = NA)
     }
@@ -308,25 +298,16 @@ res_summ <- res %>%
 
 
 res1 <- res_summ %>% 
-    filter(quarter == 1) %>% 
     arrange(disc)
-
-res2 <- res_summ %>% 
-    filter(quarter == 2) %>% 
-    arrange(disc)
-
-
 
 ```
 
 
-### RT
-
-
+## RT
 
 
 ```{r}
-
+# generate plot
 tickets_result <- rt_ticket_search("Queue='arcticdata'",
                          orderby = "+Created",
                          format = "l",
@@ -388,4 +369,8 @@ ggplot(tot, aes(datetime, ccount, color = status)) +
 
 ggsave("~/tix_q2.png", height = 4, width = 5)
 ```
+
+
+### Unique people accessing metadata and data
+
 
