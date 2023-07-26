@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, message = FALSE}
 #library(arcticreport)
+devtools::load_all()
 library(EML)
 library(dataone)
 library(readr)
@@ -30,71 +31,80 @@ library(stringr)
 ```
 
 ```{r, message = FALSE}
-devtools::load_all()
 Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
 rt_login()
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
+```
 
-
-
-objs <- query_objects(cache_tolerance = 20)
+```{r}
+# make sure you set a token!
+# Cache tolerance is maximum number of days tolerable for age of cached results. If the cached results are older than the cache tolerance, a new dataset will be cached and the old cache deleted. To force a cache refresh, set tolerance to zero.
+objs <- query_objects(cache_tolerance = 100000)
 ```
 
 
-Add info from the server from `/var/data` dir using `du -csh --block-size=1K *` and `ls -l`
+SSH into arcticdata.io, `cd /var/data/10.18739/`, and calculating directory size using: `du -csh --block-size=1K * | tr "\\t" "," > ~/filesize.csv`. This takes a while to run. Once it is finished, run `cat ~/filesize.csv` and copy the output into the block below, removing the "total" row.
 
 ```{r}
 
 size_info <- tribble(
     ~ size_kb, ~ id,
-    1540,"A24Q7QR39",
-    8675840	,"A2542J95X",
-    363518368,"A26688K9D",
-    93103396,"A26T0GX63",
-    4011719360,"A28911S0V",
-    1632101256,"A2CV4BS5K",
-    1364929160,"A2G73751P",
-    19814756,"A2G737525",
-    3500608	,"A2H70820F",
-    1661364,"A2J38KJ9R",
-    687345560,"A2JQ0SW5Z",
-    2387058564,"A2KW57K4R",
-    30306888,"A2NC5SD71",
-    58359088,"A2QF8JK7T",
-    3615792	,"A2QJ78024",
-    11787336,"A2R49GB1J",
-    103868388,"A2RV0D21Z",
-    264,"A2S46H728",
-    1428,"A2SX64B5F",
-    572554340,"A2W08WH8M",
-    26485556,"A2ZG6G81T",
-    607299596,"A2ZK55N82"
+1540,"A24Q7QR39",
+8675840,"A2542J95X",
+363518368,"A26688K9D",
+93103396,"A26T0GX63",
+4011719360,"A28911S0V",
+1632101256,"A2CV4BS5K",
+1364929160,"A2G73751P",
+19814756,"A2G737525",
+3500608,"A2H70820F",
+1661364,"A2J38KJ9R",
+687345560,"A2JQ0SW5Z",
+2387058564,"A2KW57K4R",
+3956508,"A2N29P78F",
+30306888,"A2NC5SD71",
+58359088,"A2QF8JK7T",
+3615792,"A2QJ78024",
+11787336,"A2R49GB1J",
+103868388,"A2RV0D21Z",
+18902208,"A2RV0D23X",
+264,"A2S46H728",
+1428,"A2SX64B5F",
+572554340,"A2W08WH8M",
+26485556,"A2ZG6G81T",
+607299596,"A2ZK55N82",
 )
+```
 
+For the next chunk, just run `stat -c "%.10y %n" * | tr " " ","` This one goes fast, it just gives the timestamps for each folder.
+
+```{r}
 date_info <- tribble(~date, ~id,
-                     "2021-02-11 15:53", "A2CV4BS5K",
-                     "2021-09-03 16:29", 'A2ZG6G81T',
-                     '2021-09-24 17:40', 'A2QF8JK7T',
-                     '2021-10-13 13:28', 'A28911S0V',
-                     '2021-11-30 15:08', 'A2RV0D21Z',
-                     '2022-01-11 10:18', 'A2H70820F',
-                     '2022-01-18 12:45', 'A2G73751P',
-                     '2022-01-26 10:39', 'A24Q7QR39',
-                     '2022-02-03 12:22', 'A2QJ78024',
-                     '2022-02-03 17:50', 'A2G737525',
-                     '2022-03-14 11:34', 'A2JQ0SW5Z',
-                     '2022-03-15 15:47', 'A2W08WH8M',
-                     '2022-05-26 16:47', 'A2SX64B5F',
-                     '2022-05-27 09:55', 'A2542J95X',
-                     '2022-07-11 11:45', 'A26T0GX63',
-                     '2022-07-28 11:45', 'A2KW57K4R',
-                     '2022-10-11 14:00', 'A2S46H728',
-                     '2022-10-11 14:06', 'A2NC5SD71',
-                     '2022-10-12 14:22', 'A2J38KJ9R',
-                     '2022-10-19 11:09', 'A2R49GB1J',
-                     '2022-11-08 09:38', 'A26688K9D',
-                     '2022-12-08 12:18', 'A2ZK55N82')
+"2022-01-26","A24Q7QR39",
+"2022-05-27","A2542J95X",
+"2022-11-08","A26688K9D",
+"2022-07-11","A26T0GX63",
+"2021-10-13","A28911S0V",
+"2021-02-11","A2CV4BS5K",
+"2022-01-18","A2G73751P",
+"2022-02-03","A2G737525",
+"2022-01-11","A2H70820F",
+"2022-10-12","A2J38KJ9R",
+"2022-03-14","A2JQ0SW5Z",
+"2022-07-28","A2KW57K4R",
+"2023-01-04","A2N29P78F",
+"2022-10-11","A2NC5SD71",
+"2021-09-24","A2QF8JK7T",
+"2022-02-03","A2QJ78024",
+"2022-10-19","A2R49GB1J",
+"2021-11-30","A2RV0D21Z",
+"2022-12-21","A2RV0D23X",
+"2022-10-11","A2S46H728",
+"2022-05-26","A2SX64B5F",
+"2022-03-15","A2W08WH8M",
+"2021-09-03","A2ZG6G81T",
+"2022-12-08","A2ZK55N82")
 
 
 datasets_add <- left_join(size_info, date_info) %>% 
@@ -106,11 +116,14 @@ datasets_add <- left_join(size_info, date_info) %>%
 objs <- bind_rows(objs, datasets_add)
 ```
 
+This updates the list of tickets, and individual files with annual ticket information (stored in inst/extdata/). Previous years ticket files are stored there, and the current year's needs to be updated every quarter.
+
 ```{r, echo=FALSE, warning=FALSE}
-#update_ticket_list()
-#update_annual_tix(2022)
+update_ticket_list()
+df <- update_annual_tix(2023)
 ```
 
+Now, calculate all of the actual metrics!
 
 ```{r}
 quarters$new_datasets <- map2_chr(quarters$from, quarters$to, .f = count_new_datasets, objects = objs)
@@ -127,63 +140,88 @@ quarters$support_interactions <- map2_chr(quarters$from, quarters$to, .f = count
 datatable(quarters)
 ```
 
+## Unique Accessors
 
+A special metric, this one is obtained from the metacat postgres. For now, update the dates in the query below and sent it to someone with access to the production db to run. They will drop the file on the server for you to read from.
 
+```
+COPY (
+    SELECT * FROM access_log WHERE 
+    date_logged > '2022-11-01 00:00' AND 
+    date_logged < '2023-01-31 23:59' AND 
+    lower(event) = 'read' 
+   ORDER BY date_logged ASC
+) 
+TO '/tmp/access_log.csv' WITH CSV HEADER;
+```
+
+```{r}
+count_unique_accessors("~/arcticreport/access_log.csv", from, to)
+```
+
+# Plots
+
+```{r}
+qs <- "2022-11-01"
+qe <- "2023-01-31"
+```
 
 
 ```{r}
 plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
     annotate("rect",
-             xmin = as.Date("2022-05-01"),
-             xmax = as.Date("2022-07-31"),
+             xmin = as.Date(qs),
+             xmax = as.Date(qe),
              ymin = 2500,
              ymax = 7000,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date("2022-07-31")))
+    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
 
-ggsave("~/datasets_q1.png", height = 4, width = 5)
+ggsave("~/datasets.png", height = 4, width = 5)
 ```
 
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "count")  +
     annotate("rect",
-             xmin = as.Date("2022-08-01"),
-             xmax = as.Date("2022-10-31"),
+             xmin = as.Date(qs),
+             xmax = as.Date(qe),
              ymin = 450000,
              ymax = 1000000,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date("2022-10-31")))
+    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
 
-ggsave("~/objs_q2.png", height = 4, width = 5)
+ggsave("~/objs.png", height = 4, width = 5)
 ```
 
 
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "size") +
     annotate("rect",
-             xmin = as.Date("2022-05-01"),
-             xmax = as.Date("2022-07-31"),
+             xmin = as.Date(qs),
+             xmax = as.Date(qe),
              ymin = 0,
              ymax = 77,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date("2022-07-31")))
+    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
 
-ggsave("~/size_q1.png", height = 4, width = 5)
+ggsave("~/size.png", height = 4, width = 5)
 ```
 
 
 
 
-# Programs
+# NSF Programs
+
+Another special metric, this one takes a while to run.
 
 ```{r}
 # set up time period
-from <- quarters$from[6]
-to <- quarters$to[6]
-
+from <- quarters$from[8]
+to <- quarters$to[8]
+# get the latest version (helps us more accurately read the NSF award numbers)
 get_latest_version <- function(mn, pid){
     ids <- get_all_versions(mn, pid)
     return(ids[length(ids)])
@@ -191,9 +229,6 @@ get_latest_version <- function(mn, pid){
 ```
 
 
-```{r}
-count_unique_accessors("~/access_log", from, to)
-```
 
 ```{r}
 mn <- getMNode(CNode("PROD"), "urn:node:ARCTIC")
@@ -242,18 +277,22 @@ for (i in 1:nrow(funding)){
 ```
 
 ```{r}
-q1 <- funding %>% 
+q <- funding %>% 
     group_by(programName) %>% 
     summarise(n = n())
 
-DT::datatable(q1, rownames = F)
+DT::datatable(q, rownames = F)
 ```
+
+
 
 ## Disciplines
 
+Another special metric.
+
 ```{r}
 res <- list()
-for (i in 1:nrow(m_q)){
+for (i in 50:nrow(m_q)){
     q <- dataone::query(mn, list(q = paste0('id:"', m_q$latest[i], '"'),
                                           fl = 'id,sem_annotation',
                                           sort = 'dateUploaded+desc',
@@ -293,7 +332,7 @@ res_summ <- res %>%
     select(-sem_annotation) %>% 
     pivot_longer(cols = starts_with("category"), names_to = "cat", values_to = "disc") %>% 
     filter(!is.na(disc)) %>% 
-    group_by(quarter, disc) %>% 
+    group_by(disc) %>% 
     summarise(n = n())
 
 
@@ -303,8 +342,9 @@ res1 <- res_summ %>%
 ```
 
 
-## RT
+## RT Plot
 
+This plot only goes on the one pager summary.
 
 ```{r}
 # generate plot
@@ -370,7 +410,5 @@ ggplot(tot, aes(datetime, ccount, color = status)) +
 ggsave("~/tix_q2.png", height = 4, width = 5)
 ```
 
-
-### Unique people accessing metadata and data
 
 

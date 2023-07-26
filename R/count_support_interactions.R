@@ -31,7 +31,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 
     his <- lapply(paths, read.csv)
 
-    his_full <- do.call(rbind, his) %>%
+    his_full <- do.call(dplyr::bind_rows, his) %>%
         dplyr::mutate(ticket = as.character(ticket))
 
     tickets <- read.csv(system.file("extdata", "ticket_list.csv", package = "arcticreport")) %>%
@@ -141,7 +141,7 @@ update_annual_tix <- function(year){
     path <- system.file("extdata", fname, package = "arcticreport")
 
     write.csv(his_df, path, row.names = F)
-    return(NULL)
+    return(his_df)
 }
 
 
