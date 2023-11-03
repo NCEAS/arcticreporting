@@ -40,40 +40,49 @@ quarters <- read_csv(quarters_file, progress = FALSE)
 ```{r}
 # make sure you set a token!
 # Cache tolerance is maximum number of days tolerable for age of cached results. If the cached results are older than the cache tolerance, a new dataset will be cached and the old cache deleted. To force a cache refresh, set tolerance to zero.
-objs <- query_objects(cache_tolerance = 100000)
+objs <- query_objects(cache_tolerance = 1000000)
 ```
 
 
-SSH into arcticdata.io, `cd /var/data/10.18739/`, and calculating directory size using: `du -csh --block-size=1K * | tr "\\t" "," > ~/filesize.csv`. This takes a while to run. Once it is finished, run `cat ~/filesize.csv` and copy the output into the block below, removing the "total" row.
+SSH into datateam, `cd /var/data/10.18739/`, and calculating directory size using: `du -csh --block-size=1K * | tr "\\t" "," > ~/filesize.csv`. This takes a while to run. Once it is finished, run `cat ~/filesize.csv` and copy the output into the block below, removing the "total" row.
 
 ```{r}
 
 size_info <- tribble(
     ~ size_kb, ~ id,
-1540,"A24Q7QR39",
-8675840,"A2542J95X",
-363518368,"A26688K9D",
-93103396,"A26T0GX63",
-4011719360,"A28911S0V",
-1632101256,"A2CV4BS5K",
-1364929160,"A2G73751P",
-19814756,"A2G737525",
-3500608,"A2H70820F",
-1661364,"A2J38KJ9R",
-687345560,"A2JQ0SW5Z",
-2387058564,"A2KW57K4R",
-3956508,"A2N29P78F",
-30306888,"A2NC5SD71",
-58359088,"A2QF8JK7T",
-3615792,"A2QJ78024",
-11787336,"A2R49GB1J",
-103868388,"A2RV0D21Z",
-18902208,"A2RV0D23X",
-264,"A2S46H728",
-1428,"A2SX64B5F",
-572554340,"A2W08WH8M",
-26485556,"A2ZG6G81T",
-607299596,"A2ZK55N82",
+239385764,'A2025R',
+74370,'A2251FM67',
+61159598,'A23X83N25',
+7179611597,'A24F1MK7Q',
+1318,'A24Q7QR39',
+8668145,'A2542J95X',
+48105,'A25Q4RN5H',
+363510614,'A26688K9D',
+93075087,'A26T0GX63',
+4011673235,'A28911S0V',
+1632088032,'A2CV4BS5K',
+1364922436,'A2G73751P',
+19812720,'A2G737525',
+3499905,'A2H70820F',
+1650074,'A2J38KJ9R',
+687038647,'A2JQ0SW5Z',
+2785108,'A2K06X26P',
+2387055790,'A2KW57K4R',
+19462182887,'A2KW57K57',
+274102394,'A2MG7FX35',
+3949508,'A2N29P78F',
+30281216,'A2NC5SD71',
+58324135,'A2QF8JK7T',
+3615712,'A2QJ78024',
+11777437,'A2R49GB1J',
+103866860,'A2RV0D21Z',
+18835086,'A2RV0D23X',
+74218,'A2SN0158C',
+593,'A2SX64B5F',
+32656375,'A2TB0XX0B',
+572210536,'A2W08WH8M',
+26467589,'A2ZG6G81T',
+606964478,'A2ZK55N82',
 )
 ```
 
@@ -81,8 +90,13 @@ For the next chunk, just run `stat -c "%.10y %n" * | tr " " ","` This one goes f
 
 ```{r}
 date_info <- tribble(~date, ~id,
+"2023-08-17","A2025R",
+"2023-06-15","A2251FM67",
+"2023-06-15","A23X83N25",
+"2023-08-22","A24F1MK7Q",
 "2022-01-26","A24Q7QR39",
 "2022-05-27","A2542J95X",
+"2022-06-22","A25Q4RN5H",
 "2022-11-08","A26688K9D",
 "2022-07-11","A26T0GX63",
 "2021-10-13","A28911S0V",
@@ -92,7 +106,10 @@ date_info <- tribble(~date, ~id,
 "2022-01-11","A2H70820F",
 "2022-10-12","A2J38KJ9R",
 "2022-03-14","A2JQ0SW5Z",
+"2023-08-29","A2K06X26P",
 "2022-07-28","A2KW57K4R",
+"2023-07-07","A2KW57K57",
+"2023-08-23","A2MG7FX35",
 "2023-01-04","A2N29P78F",
 "2022-10-11","A2NC5SD71",
 "2021-09-24","A2QF8JK7T",
@@ -101,10 +118,13 @@ date_info <- tribble(~date, ~id,
 "2021-11-30","A2RV0D21Z",
 "2022-12-21","A2RV0D23X",
 "2022-10-11","A2S46H728",
+"2023-06-15","A2SN0158C",
 "2022-05-26","A2SX64B5F",
+"2023-08-09","A2TB0XX0B",
 "2022-03-15","A2W08WH8M",
 "2021-09-03","A2ZG6G81T",
-"2022-12-08","A2ZK55N82")
+"2022-12-08","A2ZK55N82",
+)
 
 
 datasets_add <- left_join(size_info, date_info) %>% 
@@ -147,8 +167,8 @@ A special metric, this one is obtained from the metacat postgres. For now, updat
 ```
 COPY (
     SELECT * FROM access_log WHERE 
-    date_logged > '2022-11-01 00:00' AND 
-    date_logged < '2023-01-31 23:59' AND 
+    date_logged > '2023-05-01 00:00' AND 
+    date_logged < '2023-07-31 23:59' AND 
     lower(event) = 'read' 
    ORDER BY date_logged ASC
 ) 
@@ -156,14 +176,20 @@ TO '/tmp/access_log.csv' WITH CSV HEADER;
 ```
 
 ```{r}
+from <- "2023-05-01"
+to <- "2023-07-31"
 count_unique_accessors("~/arcticreport/access_log.csv", from, to)
 ```
+
+## Total Website Visitors
+
+Ask Robyn or the lead MetacatUI dev to give you access to Google Analytics if you don't already have it. Navigate to analytics.google.com. On the home page you will see a "Home" section that has total users for the last 7 days. Find the last 7 days drop down in the bottom left corner of the box with the timeseries figure on it, and select "custom" then enter the date range. The "users" number is the total website visitors.
 
 # Plots
 
 ```{r}
-qs <- "2022-11-01"
-qe <- "2023-01-31"
+qs <- "2023-05-01"
+qe <- "2023-07-31"
 ```
 
 
@@ -173,7 +199,7 @@ plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
              xmin = as.Date(qs),
              xmax = as.Date(qe),
              ymin = 2500,
-             ymax = 7000,
+             ymax = 7200,
              fill = "gray",
              alpha = 0.4)+
     xlim(c(as.Date("2016-03-01"), as.Date(qe)))
@@ -202,10 +228,10 @@ plot_cumulative_metric(objs, type = "data", metric = "size") +
              xmin = as.Date(qs),
              xmax = as.Date(qe),
              ymin = 0,
-             ymax = 77,
+             ymax = 100,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
+    xlim(c(as.Date("2016-03-01"), as.Date(qe))) 
 
 ggsave("~/size.png", height = 4, width = 5)
 ```
@@ -219,8 +245,8 @@ Another special metric, this one takes a while to run.
 
 ```{r}
 # set up time period
-from <- quarters$from[8]
-to <- quarters$to[8]
+from <- quarters$from[10]
+to <- quarters$to[10]
 # get the latest version (helps us more accurately read the NSF award numbers)
 get_latest_version <- function(mn, pid){
     ids <- get_all_versions(mn, pid)
@@ -241,7 +267,10 @@ m_q <- objs %>%
     filter(dateUploaded >= from & dateUploaded <= to)
 
 # get the most recent version (early versions might not have a valid funding number)
-m_q$latest <- lapply(m_q$id, get_latest_version, mn = mn)
+for (i in 1:nrow(m_q)){
+    m_q$latest[i] <- get_latest_version(mn, m_q$id[i])
+}
+#m_q$latest <- lapply(m_q$id, get_latest_version, mn = mn)
 m_q$latest <- unlist(m_q$latest)
 # extract award numbers
 res <- c()
@@ -249,6 +278,7 @@ for (i in seq_along(m_q$latest)){
     
     doc <- read_eml(getObject(mn, m_q$latest[i]))
     if (!is.null(doc$dataset$project)){
+        # TODO: only look for NSF awards first
         m_q$funding[i] <- paste(arcticdatautils::eml_get_simple(doc, "awardNumber"), collapse = ";")
     }
         else {
@@ -292,7 +322,7 @@ Another special metric.
 
 ```{r}
 res <- list()
-for (i in 50:nrow(m_q)){
+for (i in 1:nrow(m_q)){
     q <- dataone::query(mn, list(q = paste0('id:"', m_q$latest[i], '"'),
                                           fl = 'id,sem_annotation',
                                           sort = 'dateUploaded+desc',
@@ -302,8 +332,8 @@ for (i in 50:nrow(m_q)){
     if (nrow(q) > 0){
         q <- q %>% 
             rename(latest = id)
-    } else{
-        q <- data.frame(id = m_q$vers[i], sem_annotation = NA)
+    } else {
+        q <- data.frame(id = m_q$id[i], sem_annotation = NA)
     }
         
     
