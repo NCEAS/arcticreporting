@@ -22,7 +22,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 
     year <- paste(lubridate::year(from), lubridate::year(to), sep = "|")
 
-    paths <- dir(system.file("extdata", package = "arcticreport"), full.names = TRUE) %>%
+    paths <- dir("~/arcticreport", full.names = TRUE) %>%
         grep(year, ., value = TRUE)
 
     if (is.null(paths) || is.na(paths) || length(paths) == 0){
@@ -60,8 +60,8 @@ update_ticket_list <- function(){
         mutate(Created = substr(Created, start = 5, stop = 24)) %>%
         mutate(Created = as.POSIXct(Created, format = "%b %d %H:%M:%S %Y"))
 
-    path <- system.file("extdata", "ticket_list.csv", package = "arcticreport")
-    write.csv(tics_clean, path, row.names = F)
+    #path <- system.file("extdata", , package = "arcticreport")
+    write.csv(tics_clean, "~/arcticreport/ticket_list.csv", row.names = F)
     return(NULL)
 }
 
@@ -124,8 +124,8 @@ parse_event <- function(x){
 #' @export
 #'
 update_annual_tix <- function(year){
-    path <- system.file("extdata", "ticket_list.csv", package = "arcticreport")
-    tics_df <- read.csv(path)
+    #path <- system.file("extdata", "ticket_list.csv", package = "arcticreport")
+    tics_df <- read.csv("~/arcticreport/ticket_list.csv")
 
     tics_filt <- tics_df %>%
         filter(year(ymd_hms(Created)) == year)
@@ -137,10 +137,10 @@ update_annual_tix <- function(year){
 
     his_df <- do.call(bind_rows, his)
 
-    fname <- paste(year, "_ticket_events.csv")
-    path <- system.file("extdata", fname, package = "arcticreport")
+    fname <- paste("~/arcticreport/", year, "_ticket_events.csv")
+   # path <- system.file("extdata", fname, package = "arcticreport")
 
-    write.csv(his_df, path, row.names = F)
+    write.csv(his_df, fname, row.names = F)
     return(his_df)
 }
 
