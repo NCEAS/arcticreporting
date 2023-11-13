@@ -25,7 +25,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
     paths <- dir("~/arcticreport", full.names = TRUE) %>%
         grep(year, ., value = TRUE)
 
-    if (is.null(paths) || is.na(paths) || length(paths) == 0){
+    if (is.null(paths) || any(is.na(paths)) || length(paths) == 0){
         return(NA)
     }
 
