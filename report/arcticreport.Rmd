@@ -33,8 +33,12 @@ library(stringr)
 ```{r, message = FALSE}
 Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
 rt_login()
+
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
+quarters_period <- "y8q2" # CHANGE TO CURRENT QUARTER
+quarter_start_date <- as.Date(quarters[quarters$period == quarters_period, ]$from)
+quarter_end_date <- as.Date(quarters[quarters$period == quarters_period, ]$to)
 ```
 
 ```{r}
@@ -105,7 +109,7 @@ This updates the list of tickets, and individual files with annual ticket inform
 
 ```{r, echo=FALSE, warning=FALSE}
 update_ticket_list()
-df <- update_annual_tix(2023) # Argument is year to update
+df <- update_annual_tix(2023) # CHANGE argument to year to update
 ```
 
 Now, calculate all of the actual metrics!
@@ -141,9 +145,7 @@ TO '/tmp/access_log.csv' WITH CSV HEADER;
 ```
 
 ```{r}
-from <- "2023-08-01"
-to <- "2023-10-31"
-count_unique_accessors("~/arcticreport/access_log.csv", from, to)
+count_unique_accessors("~/arcticreport/access_log.csv", quarter_start_date, quarter_end_date)
 ```
 
 ## Total Website Visitors
@@ -153,21 +155,15 @@ Ask Robyn or the lead MetacatUI dev to give you access to Google Analytics if yo
 # Plots
 
 ```{r}
-qs <- "2023-08-01"
-qe <- "2023-10-31"
-```
-
-
-```{r}
 plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 2500,
              ymax = 7200,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
+    xlim(c(as.Date("2016-03-01"), quarter_end_date))
 
 ggsave("~/datasets.png", height = 4, width = 5)
 ```
@@ -175,13 +171,13 @@ ggsave("~/datasets.png", height = 4, width = 5)
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "count")  +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 450000,
              ymax = 1000000,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
+    xlim(c(as.Date("2016-03-01"), quarter_end_date))
 
 ggsave("~/objs.png", height = 4, width = 5)
 ```
@@ -190,13 +186,13 @@ ggsave("~/objs.png", height = 4, width = 5)
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "size") +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 0,
              ymax = 110,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe))) 
+    xlim(c(as.Date("2016-03-01"), quarter_end_date)) 
 
 ggsave("~/size.png", height = 4, width = 5)
 ```
@@ -209,9 +205,6 @@ ggsave("~/size.png", height = 4, width = 5)
 Another special metric, this one takes a while to run.
 
 ```{r}
-# set up time period
-from <- quarters$from[11] ## Change to correct index !!!
-to <- quarters$to[11] ## Change to correct index !!!
 # get the latest version (helps us more accurately read the NSF award numbers)
 get_latest_version <- function(mn, pid){
     ids <- get_all_versions(mn, pid)
@@ -229,7 +222,7 @@ m_q <- objs %>%
     filter(formatType == "METADATA") %>% 
     filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
     filter(is.na(obsoletes)) %>%
-    filter(dateUploaded >= from & dateUploaded <= to)
+    filter(dateUploaded >= quarter_start_date & dateUploaded <= quarter_end_date)
 
 # get the most recent version (early versions might not have a valid funding number)
 for (i in 1:nrow(m_q)){
@@ -379,7 +372,7 @@ tot <- tickets %>%
   select(id, Created, Resolved) %>% 
   gather(status, datetime, -id, na.rm = TRUE)
 
-names(tot) <- c("id", "status", "datetime)"
+names(tot) <- c("id", "status", "datetime")
 
 tot <- tot %>%
   group_by(status) %>% 
@@ -392,13 +385,13 @@ ggplot(tot, aes(datetime, ccount, color = status)) +
   geom_step() +
   labs(title = "Cumulative Tickets Created & Resolved Over Time", x = "Date", y = "Number of Tickets") +
   annotate("rect",
-           xmin = ymd_hms("2022-08-01 00:00:00"),
-           xmax = ymd_hms("2022-10-31 00:00:00"),
+           xmin = as.POSIXct(quarter_start_date),
+           xmax = as.POSIXct(quarter_end_date),
            ymin = 0,
            ymax = max(tot$ccount),
            fill = "gray",
            alpha = 0.4) +
-  xlim(c(ymd_hms("2016-03-01 00:00:00"), ymd_hms("2022-10-31 00:00:00"))) +
+  xlim(c(ymd_hms("2016-03-01 00:00:00"), as.POSIXct(quarter_end_date))) +
   theme_bw() +
   theme(legend.position = "bottom")
 
