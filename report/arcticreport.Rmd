@@ -33,8 +33,12 @@ library(stringr)
 ```{r, message = FALSE}
 Sys.setenv("RT_BASE_URL"="https://support.nceas.ucsb.edu/rt/")
 rt_login()
+
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
+quarters_period <- "y8q2" # CHANGE TO CURRENT QUARTER
+quarter_start_date <- as.Date(quarters[quarters$period == quarters_period, ]$from)
+quarter_end_date <- as.Date(quarters[quarters$period == quarters_period, ]$to)
 ```
 
 ```{r}
@@ -44,95 +48,60 @@ objs <- query_objects(cache_tolerance = 1000000)
 ```
 
 
-SSH into datateam, `cd /var/data/10.18739/`, and calculating directory size using: `du -csh --block-size=1K * | tr "\\t" "," > ~/filesize.csv`. This takes a while to run. Once it is finished, run `cat ~/filesize.csv` and copy the output into the block below, removing the "total" row.
+SSH into datateam, navigate to the 10.18739 directory with `cd /var/data/10.18739/`, then calculate the directory size using:
 
-```{r}
-
-size_info <- tribble(
-    ~ size_kb, ~ id,
-239385764,'A2025R',
-74370,'A2251FM67',
-61159598,'A23X83N25',
-7179611597,'A24F1MK7Q',
-1318,'A24Q7QR39',
-8668145,'A2542J95X',
-48105,'A25Q4RN5H',
-363510614,'A26688K9D',
-93075087,'A26T0GX63',
-4011673235,'A28911S0V',
-1632088032,'A2CV4BS5K',
-1364922436,'A2G73751P',
-19812720,'A2G737525',
-3499905,'A2H70820F',
-1650074,'A2J38KJ9R',
-687038647,'A2JQ0SW5Z',
-2785108,'A2K06X26P',
-2387055790,'A2KW57K4R',
-19462182887,'A2KW57K57',
-274102394,'A2MG7FX35',
-3949508,'A2N29P78F',
-30281216,'A2NC5SD71',
-58324135,'A2QF8JK7T',
-3615712,'A2QJ78024',
-11777437,'A2R49GB1J',
-103866860,'A2RV0D21Z',
-18835086,'A2RV0D23X',
-74218,'A2SN0158C',
-593,'A2SX64B5F',
-32656375,'A2TB0XX0B',
-572210536,'A2W08WH8M',
-26467589,'A2ZG6G81T',
-606964478,'A2ZK55N82',
-)
+```
+for x in `find . -type d -maxdepth 1`; do getfattr --only-values -n ceph.dir.rbytes "$x" && echo -e " $x"; done | sort -n > ~/report_sizes_info.txt
 ```
 
-For the next chunk, just run `stat -c "%.10y %n" * | tr " " ","` This one goes fast, it just gives the timestamps for each folder.
+Once it is finished, it will save the output to a txt file saved at `~/report_sizes_info.txt`
+
 
 ```{r}
-date_info <- tribble(~date, ~id,
-"2023-08-17","A2025R",
-"2023-06-15","A2251FM67",
-"2023-06-15","A23X83N25",
-"2023-08-22","A24F1MK7Q",
-"2022-01-26","A24Q7QR39",
-"2022-05-27","A2542J95X",
-"2022-06-22","A25Q4RN5H",
-"2022-11-08","A26688K9D",
-"2022-07-11","A26T0GX63",
-"2021-10-13","A28911S0V",
-"2021-02-11","A2CV4BS5K",
-"2022-01-18","A2G73751P",
-"2022-02-03","A2G737525",
-"2022-01-11","A2H70820F",
-"2022-10-12","A2J38KJ9R",
-"2022-03-14","A2JQ0SW5Z",
-"2023-08-29","A2K06X26P",
-"2022-07-28","A2KW57K4R",
-"2023-07-07","A2KW57K57",
-"2023-08-23","A2MG7FX35",
-"2023-01-04","A2N29P78F",
-"2022-10-11","A2NC5SD71",
-"2021-09-24","A2QF8JK7T",
-"2022-02-03","A2QJ78024",
-"2022-10-19","A2R49GB1J",
-"2021-11-30","A2RV0D21Z",
-"2022-12-21","A2RV0D23X",
-"2022-10-11","A2S46H728",
-"2023-06-15","A2SN0158C",
-"2022-05-26","A2SX64B5F",
-"2023-08-09","A2TB0XX0B",
-"2022-03-15","A2W08WH8M",
-"2021-09-03","A2ZG6G81T",
-"2022-12-08","A2ZK55N82",
-)
+# Reads in txt file and splits each line by separator 
+size_lines <- scan("~/report_sizes_info.txt", what = "char", sep = "\n")
+split_size_lines <- strsplit(size_lines, " ./")
+
+# Creates empty data frame with 2 columns (size_b: size in bytes, id: id of data folder) removing the total size line at the end
+size_info <- data.frame(size_b = rep(NA, length(split_size_lines)-1),
+                        id = rep(NA, length(split_size_lines)-1))
+
+# Fills the data frame with size and id information
+for (i in 1:(length(split_size_lines)-1)) {
+  size_info$size_b[i] <- split_size_lines[[i]][1]
+  size_info$id[i] <- split_size_lines[[i]][2]
+}
+```
+
+For the next chunk, just run `stat -c "%.10y %n" * | tr " " "," > ~/report_dates_info.txt` 
+This one goes fast; it just gives the timestamps for each folder, and saves it to a file at `~/report_dates_info.txt`
+
+```{r}
+# Reads in txt file and splits each line by separator
+date_lines <- scan("~/report_dates_info.txt", what = "char", sep = "\n")
+split_date_lines <- strsplit(date_lines, ",")
+
+# Creates empty data frame with 2 columns (date: timestamp for each folder, id: id of data folder)
+date_info <- data.frame(date = rep(NA, length(split_date_lines)),
+                        id = rep(NA, length(split_date_lines)))
+
+# Fills the data frame with size and id information
+for (i in 1:length(split_date_lines)) {
+  date_info$date[i] <- split_date_lines[[i]][1]
+  date_info$id[i] <- split_date_lines[[i]][2]
+}
+```
 
 
+```{r}
+# Left joins the size_info and date_info tables
 datasets_add <- left_join(size_info, date_info) %>% 
-    mutate(size = size_kb*1024) %>% 
-    mutate(dateUploaded = as.Date(date)) %>% 
-    mutate(formatType = "DATA") %>% 
-    select(-size_kb,-date)
+  mutate(size = as.numeric(size_b)) %>% 
+  mutate(dateUploaded = as.Date(date)) %>% 
+  mutate(formatType = "DATA") %>% 
+  select(-size_b,-date)
 
+# Adds rows of data to objs table
 objs <- bind_rows(objs, datasets_add)
 ```
 
@@ -140,7 +109,7 @@ This updates the list of tickets, and individual files with annual ticket inform
 
 ```{r, echo=FALSE, warning=FALSE}
 update_ticket_list()
-df <- update_annual_tix(2023)
+df <- update_annual_tix(2023) # CHANGE argument to year to update
 ```
 
 Now, calculate all of the actual metrics!
@@ -167,8 +136,8 @@ A special metric, this one is obtained from the metacat postgres. For now, updat
 ```
 COPY (
     SELECT * FROM access_log WHERE 
-    date_logged > '2023-05-01 00:00' AND 
-    date_logged < '2023-07-31 23:59' AND 
+    date_logged > '2023-08-01 00:00' AND 
+    date_logged < '2023-10-31 23:59' AND 
     lower(event) = 'read' 
    ORDER BY date_logged ASC
 ) 
@@ -176,9 +145,7 @@ TO '/tmp/access_log.csv' WITH CSV HEADER;
 ```
 
 ```{r}
-from <- "2023-05-01"
-to <- "2023-07-31"
-count_unique_accessors("~/arcticreport/access_log.csv", from, to)
+count_unique_accessors("~/arcticreport/access_log.csv", quarter_start_date, quarter_end_date)
 ```
 
 ## Total Website Visitors
@@ -188,21 +155,15 @@ Ask Robyn or the lead MetacatUI dev to give you access to Google Analytics if yo
 # Plots
 
 ```{r}
-qs <- "2023-05-01"
-qe <- "2023-07-31"
-```
-
-
-```{r}
 plot_cumulative_metric(objs, type = "metadata", metric = "count")  +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 2500,
              ymax = 7200,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
+    xlim(c(as.Date("2016-03-01"), quarter_end_date))
 
 ggsave("~/datasets.png", height = 4, width = 5)
 ```
@@ -210,13 +171,13 @@ ggsave("~/datasets.png", height = 4, width = 5)
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "count")  +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 450000,
              ymax = 1000000,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe)))
+    xlim(c(as.Date("2016-03-01"), quarter_end_date))
 
 ggsave("~/objs.png", height = 4, width = 5)
 ```
@@ -225,13 +186,13 @@ ggsave("~/objs.png", height = 4, width = 5)
 ```{r}
 plot_cumulative_metric(objs, type = "data", metric = "size") +
     annotate("rect",
-             xmin = as.Date(qs),
-             xmax = as.Date(qe),
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
              ymin = 0,
-             ymax = 100,
+             ymax = 110,
              fill = "gray",
              alpha = 0.4)+
-    xlim(c(as.Date("2016-03-01"), as.Date(qe))) 
+    xlim(c(as.Date("2016-03-01"), quarter_end_date)) 
 
 ggsave("~/size.png", height = 4, width = 5)
 ```
@@ -244,9 +205,6 @@ ggsave("~/size.png", height = 4, width = 5)
 Another special metric, this one takes a while to run.
 
 ```{r}
-# set up time period
-from <- quarters$from[10]
-to <- quarters$to[10]
 # get the latest version (helps us more accurately read the NSF award numbers)
 get_latest_version <- function(mn, pid){
     ids <- get_all_versions(mn, pid)
@@ -264,7 +222,7 @@ m_q <- objs %>%
     filter(formatType == "METADATA") %>% 
     filter(!grepl("*.dataone.org/portals|*.dataone.org/collections", formatId)) %>%
     filter(is.na(obsoletes)) %>%
-    filter(dateUploaded >= from & dateUploaded <= to)
+    filter(dateUploaded >= quarter_start_date & dateUploaded <= quarter_end_date)
 
 # get the most recent version (early versions might not have a valid funding number)
 for (i in 1:nrow(m_q)){
@@ -427,13 +385,13 @@ ggplot(tot, aes(datetime, ccount, color = status)) +
   geom_step() +
   labs(title = "Cumulative Tickets Created & Resolved Over Time", x = "Date", y = "Number of Tickets") +
   annotate("rect",
-           xmin = ymd_hms("2022-08-01 00:00:00"),
-           xmax = ymd_hms("2022-10-31 00:00:00"),
+           xmin = as.POSIXct(quarter_start_date),
+           xmax = as.POSIXct(quarter_end_date),
            ymin = 0,
            ymax = max(tot$ccount),
            fill = "gray",
            alpha = 0.4) +
-  xlim(c(ymd_hms("2016-03-01 00:00:00"), ymd_hms("2022-10-31 00:00:00"))) +
+  xlim(c(ymd_hms("2016-03-01 00:00:00"), as.POSIXct(quarter_end_date))) +
   theme_bw() +
   theme(legend.position = "bottom")
 
