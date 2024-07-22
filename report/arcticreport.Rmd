@@ -36,10 +36,12 @@ rt_login()
 
 quarters_file <- "../inst/extdata/quarters.csv"
 quarters <- read_csv(quarters_file, progress = FALSE)
-quarters_period <- "y8q2" # CHANGE TO CURRENT QUARTER
+quarters_period <- "y8q4" # CHANGE TO CURRENT QUARTER
 quarter_start_date <- as.Date(quarters[quarters$period == quarters_period, ]$from)
 quarter_end_date <- as.Date(quarters[quarters$period == quarters_period, ]$to)
 ```
+
+Get a list of objects from the Metacat SOLR index to use for calculating metrics.
 
 ```{r}
 # make sure you set a token!
@@ -47,59 +49,12 @@ quarter_end_date <- as.Date(quarters[quarters$period == quarters_period, ]$to)
 objs <- query_objects(cache_tolerance = 1000000)
 ```
 
-
-SSH into datateam, navigate to the 10.18739 directory with `cd /var/data/10.18739/`, then calculate the directory size using:
-
-```
-for x in `find . -type d -maxdepth 1`; do getfattr --only-values -n ceph.dir.rbytes "$x" && echo -e " $x"; done | sort -n > ~/report_sizes_info.txt
-```
-
-Once it is finished, it will save the output to a txt file saved at `~/report_sizes_info.txt`
-
+Next we get a list of the datasets that are stored only on the ADC production filesystem, and not yet in Metacat. The function `query_filesys_objects()` runs a system bash command, and assumes a particular directory structure is used for storing the data files. It also assumes files are on a `cephfs` filesystem on `datateam`, allowing for fast counting and size estimates for millions of files, but making the whole approach non-portable but convenient for now.
 
 ```{r}
-# Reads in txt file and splits each line by separator 
-size_lines <- scan("~/report_sizes_info.txt", what = "char", sep = "\n")
-split_size_lines <- strsplit(size_lines, " ./")
-
-# Creates empty data frame with 2 columns (size_b: size in bytes, id: id of data folder) removing the total size line at the end
-size_info <- data.frame(size_b = rep(NA, length(split_size_lines)-1),
-                        id = rep(NA, length(split_size_lines)-1))
-
-# Fills the data frame with size and id information
-for (i in 1:(length(split_size_lines)-1)) {
-  size_info$size_b[i] <- split_size_lines[[i]][1]
-  size_info$id[i] <- split_size_lines[[i]][2]
-}
-```
-
-For the next chunk, just run `stat -c "%.10y %n" * | tr " " "," > ~/report_dates_info.txt` 
-This one goes fast; it just gives the timestamps for each folder, and saves it to a file at `~/report_dates_info.txt`
-
-```{r}
-# Reads in txt file and splits each line by separator
-date_lines <- scan("~/report_dates_info.txt", what = "char", sep = "\n")
-split_date_lines <- strsplit(date_lines, ",")
-
-# Creates empty data frame with 2 columns (date: timestamp for each folder, id: id of data folder)
-date_info <- data.frame(date = rep(NA, length(split_date_lines)),
-                        id = rep(NA, length(split_date_lines)))
-
-# Fills the data frame with size and id information
-for (i in 1:length(split_date_lines)) {
-  date_info$date[i] <- split_date_lines[[i]][1]
-  date_info$id[i] <- split_date_lines[[i]][2]
-}
-```
-
-
-```{r}
-# Left joins the size_info and date_info tables
-datasets_add <- left_join(size_info, date_info) %>% 
-  mutate(size = as.numeric(size_b)) %>% 
-  mutate(dateUploaded = as.Date(date)) %>% 
-  mutate(formatType = "DATA") %>% 
-  select(-size_b,-date)
+# Get list of filesystem data package sizes and counts
+# Runs a system bash command, so assumes running on `datateam`
+datasets_add <- query_filesys_objects()
 
 # Adds rows of data to objs table
 objs <- bind_rows(objs, datasets_add)
@@ -174,7 +129,7 @@ plot_cumulative_metric(objs, type = "data", metric = "count")  +
              xmin = quarter_start_date,
              xmax = quarter_end_date,
              ymin = 450000,
-             ymax = 1000000,
+             ymax = 50000000,
              fill = "gray",
              alpha = 0.4)+
     xlim(c(as.Date("2016-03-01"), quarter_end_date))
@@ -197,8 +152,18 @@ plot_cumulative_metric(objs, type = "data", metric = "size") +
 ggsave("~/size.png", height = 4, width = 5)
 ```
 
+```{r}
+plot_cumulative_volume(objs) +
+    annotate("rect",
+             xmin = quarter_start_date,
+             xmax = quarter_end_date,
+             ymin = 0,
+             ymax = 150,
+             fill = "gray",
+             alpha = 0.4)
 
-
+ggsave("~/size-model.png", height = 4, width = 5)
+```
 
 # NSF Programs
 
