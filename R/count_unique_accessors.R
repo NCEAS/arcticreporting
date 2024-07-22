@@ -5,7 +5,10 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of unique people accessing data
+#' 
+#' @import httr
 #' @export
+#'
 #'
 #' @note In the postgres database, use query: COPY (
 #'     SELECT * FROM access_log WHERE

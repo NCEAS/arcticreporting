@@ -10,17 +10,35 @@
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 count_data_objects <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
-    if (class(from)[1] == "character"){
-        from <- as.POSIXct(from)
+        if (class(from)[1] == "character") {
+            from <- as.POSIXct(from)
+        }
+        if (class(to)[1] == "character") {
+            to <- as.POSIXct(to)
+        }
+        
+        if (is.null(objects$rentries)) {
+            warning(
+                "No file system counts found. If you want to include file system counts run `query_filesys_objects()."
+            )
+            objects$rentries <- NA
+        }
+        
+        object_count_metacat <- objects %>%
+            dplyr::filter(.data$formatType == "DATA") %>%
+            dplyr::filter(is.na(.data$obsoletedBy)) %>%
+            dplyr::filter(.data$dateUploaded >= from & .data$dateUploaded <= to) %>%
+            dplyr::filter(is.na(.data$rentries))
+        
+        object_count_filesys <- objects %>%
+            dplyr::filter(.data$formatType == "DATA") %>%
+            dplyr::filter(is.na(.data$obsoletedBy)) %>%
+            dplyr::filter(.data$dateUploaded >= from & .data$dateUploaded <= to) %>%
+            dplyr::filter(!is.na(.data$rentries))
+        
+        filesys_count <-
+            sum(object_count_filesys$rentries, na.rm = TRUE)
+        
+        
+        return(nrow(object_count_metacat) + filesys_count)
     }
-    if (class(to)[1] == "character"){
-        to <- as.POSIXct(to)
-    }
-
-    object_count <- objects %>%
-        dplyr::filter(.data$formatType == "DATA") %>%
-        dplyr::filter(is.na(.data$obsoletedBy)) %>%
-        dplyr::filter(.data$dateUploaded >= from & .data$dateUploaded <= to)
-
-    return(nrow(object_count))
-}

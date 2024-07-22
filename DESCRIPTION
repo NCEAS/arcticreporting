@@ -15,22 +15,24 @@ Imports:
     data.table,
     dplyr,
     ggplot2,
-    googlesheets4,
+    httr,
+    jsonlite,
     lubridate,
+    processx,
     rappdirs,
     readr,
     rlang,
     scales,
     stringr,
     tidyr,
+    udunits2,
     uuid
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Suggests: 
     rmarkdown,
     knitr,
     purrr,
-    readr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

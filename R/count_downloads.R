@@ -4,6 +4,9 @@
 #' @param to End date to count over (character of POSIXct)
 #'
 #' @return Number of downloads in given time period
+#' 
+#' @importFrom jsonlite fromJSON
+#' 
 #' @export
 #'
 

@@ -9,7 +9,7 @@
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
-#' @import data.table
+#' @importFrom data.table as.data.table
 count_creators <- function(objects, from = as.POSIXct("1899-01-01"), to = as.POSIXct(Sys.Date())) {
 
     if (class(from)[1] == "character"){

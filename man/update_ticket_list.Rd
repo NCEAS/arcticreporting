@@ -4,7 +4,10 @@
 \alias{update_ticket_list}
 \title{Update text file of all tickets}
 \usage{
-update_ticket_list()
+update_ticket_list(path = paste0(getwd(), "/ticket_list.csv"))
+}
+\arguments{
+\item{path}{a path to write the ticket list to}
 }
 \description{
 Update text file of all tickets

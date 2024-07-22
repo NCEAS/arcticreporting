@@ -4,10 +4,12 @@
 \alias{update_annual_tix}
 \title{Update text file of annual ticket events}
 \usage{
-update_annual_tix(year)
+update_annual_tix(year, path = paste0(getwd(), "/ticket_list.csv"))
 }
 \arguments{
-\item{Year}{Year to update}
+\item{year}{Year to update}
+
+\item{path}{path of ticket list to read from}
 }
 \description{
 Update text file of annual ticket events
