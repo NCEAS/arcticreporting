@@ -1,10 +1,6 @@
 #' Plot cumulative volume of data for the specific time period
 #'
 #' @param objects (data.frame) Table obtained from `query_objects`
-#' @param type (char) Object type to aggregate, one of "data" or "metadata"
-#' @param metric (char) Type of aggregation, one of "count" or "size"
-#' @param from Start date of plot (chatacter or POSIXct)
-#' @param to End date of plot (character of POSIXct)
 #' @param ... additional arguments to `plot_theme_adc`
 #'
 #' @return Plot of total data volume
@@ -12,7 +8,7 @@
 #'
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
-plot_cumulative_volume <- function(objects) {
+plot_cumulative_volume <- function(objects, ...) {
     
     options(scipen=999)
     
@@ -79,7 +75,7 @@ plot_cumulative_volume <- function(objects) {
                      labels = as.character(year(date_axis_breaks))) +
         labs(x = "",
              y = "Repository Size (TB)") +
-        plot_theme_adc() +
+        plot_theme_adc(...) +
         theme(legend.title = element_blank(),
               legend.position = "none")
     
