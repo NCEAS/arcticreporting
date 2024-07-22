@@ -6,13 +6,16 @@
 \usage{
 count_support_interactions(
   from = as.POSIXct("2010-01-01"),
-  to = as.POSIXct(Sys.Date())
+  to = as.POSIXct(Sys.Date()),
+  wd = getwd()
 )
 }
 \arguments{
 \item{from}{Start date to count over (chatacter or POSIXct)}
 
 \item{to}{End date to count over (character of POSIXct)}
+
+\item{wd}{Working directory to read and write files to/from}
 }
 \value{
 Number of support interactions

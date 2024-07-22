@@ -11,12 +11,15 @@ License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports:
+    conflicted,
     dataone,
     data.table,
     dplyr,
     ggplot2,
-    googlesheets4,
+    httr,
+    jsonlite,
     lubridate,
+    processx,
     rappdirs,
     readr,
     rlang,
@@ -31,7 +34,6 @@ Suggests:
     rmarkdown,
     knitr,
     purrr,
-    readr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

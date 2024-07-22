@@ -2,12 +2,13 @@
 #'
 #' @param from Start date to count over (chatacter or POSIXct)
 #' @param to End date to count over (character of POSIXct)
+#' @param wd Working directory to read and write files to/from
 #'
 #' @return Number of support interactions
 #' @export
 #'
 
-count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(Sys.Date())){
+count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(Sys.Date()), wd = getwd()){
 
     from <- as.Date(from); to <- as.Date(to)
     from_q <- paste(stringr::str_pad(lubridate::month(from), 2, side = "left", pad = "0"),
@@ -22,7 +23,7 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 
     year <- paste(lubridate::year(from), lubridate::year(to), sep = "|")
 
-    paths <- dir("~/arcticreport", full.names = TRUE) %>%
+    paths <- dir(wd, full.names = TRUE) %>%
         grep(year, ., value = TRUE)
 
     if (is.null(paths) || any(is.na(paths)) || length(paths) == 0){
@@ -47,10 +48,10 @@ count_support_interactions <- function(from = as.POSIXct("2010-01-01"), to = as.
 }
 
 #' Update text file of all tickets
-#'
+#' @param path a path to write the ticket list to 
 #'
 #' @export
-update_ticket_list <- function(){
+update_ticket_list <- function(path = paste0(getwd(), "/ticket_list.csv")){
     tics <- rt_ticket_search("Queue='arcticdata'",
                              orderby = "+Created",
                              format = "l",
@@ -61,7 +62,7 @@ update_ticket_list <- function(){
         mutate(Created = as.POSIXct(Created, format = "%b %d %H:%M:%S %Y"))
 
     #path <- system.file("extdata", , package = "arcticreport")
-    write.csv(tics_clean, "~/arcticreport/ticket_list.csv", row.names = F)
+    write.csv(tics_clean, path, row.names = F)
     return(NULL)
 }
 
@@ -119,13 +120,14 @@ parse_event <- function(x){
 
 #' Update text file of annual ticket events
 #'
-#' @param Year Year to update
+#' @param year Year to update
+#' @param path path of ticket list to read from
 #'
 #' @export
 #'
-update_annual_tix <- function(year){
+update_annual_tix <- function(year, path = paste0(getwd(), "/ticket_list.csv")){
     #path <- system.file("extdata", "ticket_list.csv", package = "arcticreport")
-    tics_df <- read.csv("~/arcticreport/ticket_list.csv")
+    tics_df <- read.csv(path)
 
     tics_filt <- tics_df %>%
         filter(year(ymd_hms(Created)) == year)

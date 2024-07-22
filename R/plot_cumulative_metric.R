@@ -48,7 +48,7 @@ plot_cumulative_metric <- function(objects,
         dplyr::mutate(dateUploaded = as.Date(.data$dateUploaded)) %>%
         dplyr::mutate(size_kb = as.numeric(.data$size)/1024) %>%
         dplyr::arrange(as.Date(.data$dateUploaded)) %>%
-        dplyr::mutate(count = 1) %>%
+        dplyr::mutate(count = dplyr::if_else(is.na(rentries), 1, rentries)) %>%
         dplyr::mutate(cumcount = cumsum(.data$count)) %>%
         dplyr::mutate(cumsize = cumsum(.data$size_kb)/1e9) %>%
         dplyr::filter(.data$dateUploaded > plot_start + 1)

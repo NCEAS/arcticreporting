@@ -4,7 +4,7 @@
 \alias{query_objects}
 \title{Return key information on all objects on the Arctic Data Center}
 \usage{
-query_objects(n = 1e+07, cache_tolerance = 14)
+query_objects(n = 10000000, cache_tolerance = 14)
 }
 \arguments{
 \item{n}{(integer) Number of rows to return}
