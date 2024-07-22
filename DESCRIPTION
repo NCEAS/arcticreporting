@@ -11,7 +11,6 @@ License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
 Imports:
-    conflicted,
     dataone,
     data.table,
     dplyr,
