@@ -14,7 +14,7 @@
 #'
 #' @importFrom readr read_csv
 #' @import dplyr
-filesys_objects <- function(){
+query_filesys_objects <- function(){
     
     # Get current large data sizes, must be run on datateam
     large_file <- paste0(getwd(), "/adc-large-data.csv")
