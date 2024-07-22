@@ -4,10 +4,19 @@
 \alias{plot_cumulative_volume}
 \title{Plot cumulative volume of data for the specific time period}
 \usage{
-plot_cumulative_volume(objects, ...)
+plot_cumulative_volume(
+  objects,
+  from = as.Date("2009-01-01"),
+  to = as.Date(Sys.Date()),
+  ...
+)
 }
 \arguments{
 \item{objects}{(data.frame) Table obtained from \code{query_objects}}
+
+\item{from}{Start date of plot (chatacter or POSIXct)}
+
+\item{to}{End date of plot (character of POSIXct)}
 
 \item{...}{additional arguments to \code{plot_theme_adc}}
 }

@@ -53,14 +53,6 @@ plot_cumulative_metric <- function(objects,
         dplyr::mutate(cumsize = cumsum(.data$size_kb)/1e9) %>%
         dplyr::filter(.data$dateUploaded > plot_start + 1)
 
-
-    # datasets <- dplyr::bind_rows(data.frame(identifier = NA,
-    #                                  dateUploaded = seq(plot_start, min(datasets$dateUploaded), by = "day"),
-    #                                  count = 0,
-    #                                  cumsum = min(datasets$cumcount),
-    #                                  cumsize = 0),
-    #                       datasets)
-
     # Plotting
     if (metric == "count"){
         g <- ggplot2::ggplot(datasets, ggplot2::aes(.data$dateUploaded, .data$cumcount))
